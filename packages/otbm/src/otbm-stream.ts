@@ -21,6 +21,7 @@ import type {
 } from './types.js'
 
 const { START, END, ESCAPE } = NODE_SPECIAL_BYTE
+const MAX_OTBM_DEPTH = 31
 
 export function countTileAreas(bytes: Uint8Array): number {
   let count = 0
@@ -71,8 +72,8 @@ export class OtbmStreamParser {
 
   // context stack - parallel Int32Arrays, no heap allocation per node
   // ctxPropsBegin[d] == -1 means props at depth d were already processed
-  private readonly ctxType = new Int32Array(16)
-  private readonly ctxPropsBegin = new Int32Array(16)
+  private readonly ctxType = new Int32Array(MAX_OTBM_DEPTH + 1)
+  private readonly ctxPropsBegin = new Int32Array(MAX_OTBM_DEPTH + 1)
   private depth = -1
 
   // parse state
@@ -111,6 +112,9 @@ export class OtbmStreamParser {
         i++
         if (i >= bytes.length) throw new ParseError('Unexpected EOF after node start (0xFE)')
         const type = bytes[i++]!
+        if (this.depth >= MAX_OTBM_DEPTH) {
+          throw new ParseError(`OTBM nesting limit exceeded (max ${MAX_OTBM_DEPTH}) at offset ${i}`)
+        }
         this.depth++
         this.ctxType[this.depth] = type
         this.ctxPropsBegin[this.depth] = i
