@@ -71,6 +71,14 @@ Parse an `.otbm` binary. Throws `ParseError` on malformed input.
 
 Serialize an `OtbmFile` (or compatible object) back to binary.
 
+### `.writeStream(data: OtbmWriteInput, opts?: OtbmWriteOpts): AsyncIterable<Uint8Array>`
+
+Streaming variant of `.write()`. Yields the output as an array of `Uint8Array` chunks suitable for piping to a writable stream.
+
+> **Note:** the full serialization is performed synchronously before the first yield — memory usage at peak is equivalent to `.write()`. The chunk-by-chunk delivery is useful for progressive writes (e.g., piping to `fs.createWriteStream`), but does not reduce peak memory allocation.
+>
+> TODO: implement incremental serialization (generate and yield each area without full upfront accumulation)
+
 ### `.validate(buffer: ArrayBuffer | Uint8Array): { ok: boolean; error?: string }`
 
 Validate the root node marker and header version without parsing areas.

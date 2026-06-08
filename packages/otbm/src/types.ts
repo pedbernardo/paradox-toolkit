@@ -39,6 +39,9 @@ export type OtbmRegularTile = {
   x: number
   y: number
   z: number
+  // Raw bitmask — kept as number (not OtbmTileFlags) to avoid allocating one object per tile;
+  // maps can have 100k+ tiles. Use decodeTileFlags() from @paradox/otbm when you need the
+  // decoded form.
   flags: number
   actionId?: number
   items: OtbmItem[]
@@ -50,6 +53,7 @@ export type OtbmHouseTile = {
   y: number
   z: number
   houseId: number
+  // Raw bitmask — see OtbmRegularTile.flags for rationale.
   flags: number
   actionId?: number
   items: OtbmItem[]
