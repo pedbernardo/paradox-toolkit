@@ -75,8 +75,6 @@ describe('items-772.otb', () => {
   })
 })
 
-// ─── items-960: coverage for attribute handlers absent in 772 ─────────────────
-
 describe('items-960.otb', () => {
   let file: OtbFile
 

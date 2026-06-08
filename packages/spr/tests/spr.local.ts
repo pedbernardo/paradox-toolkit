@@ -1,29 +1,33 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
+import { ParseError, UnsupportedVersionError } from '@paradox/utils'
+import type { SprFile } from '../src/types.js'
 import { Spr } from '../src/spr.js'
 
 const dirname = fileURLToPath(new URL('.', import.meta.url))
 const fixture = (name: string) => join(dirname, '..', 'fixtures', name)
 const hasFixture = (name: string) => existsSync(fixture(name))
 
-function loadSpr(version: number) {
-  const buffer = readFileSync(fixture(`spr-${version}.spr`))
-  return Spr(buffer, version)
+const FIXTURE_772 = 'spr-772.spr'
+
+function readFixture(version: number): ArrayBuffer {
+  const buf = readFileSync(fixture(`spr-${version}.spr`))
+  return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer
+}
+
+function loadSpr(version: number): SprFile {
+  return Spr(version).load(readFixture(version))
 }
 
 const FIXTURE_VERSIONS = [710, 740, 750, 755, 760, 770, 772, 860, 870, 960, 980, 1098]
 
-// ─── smoke: all fixture versions ─────────────────────────────────────────────
-
-describe('smoke — all fixture versions', () => {
+describe('smoke - all fixture versions', () => {
   for (const version of FIXTURE_VERSIONS) {
     const name = `spr-${version}.spr`
     it.skipIf(!hasFixture(name))(`spr-${version}: loads without throwing`, () => {
       const spr = loadSpr(version)
-      spr.validate()
-      spr.load()
       expect(spr.count).toBeGreaterThan(0)
       const sprite = spr.get(1)
       expect(sprite).toBeDefined()
@@ -32,4 +36,65 @@ describe('smoke — all fixture versions', () => {
       expect(sprite!.height).toBe(32)
     })
   }
+})
+
+describe.skipIf(!hasFixture(FIXTURE_772))('spr-772: smoke', () => {
+  it('loads and validates without throwing', () => {
+    const buffer = readFixture(772)
+    Spr(772).validate(buffer)
+    const file = Spr(772).load(buffer)
+    expect(file.count).toBeGreaterThan(0)
+    const sprite = file.get(1)
+    expect(sprite).toBeDefined()
+    expect(sprite!.rgba.length).toBe(4096)
+    expect(sprite!.width).toBe(32)
+    expect(sprite!.height).toBe(32)
+  })
+})
+
+describe.skipIf(!hasFixture(FIXTURE_772))('signature validation', () => {
+  it('validate() throws ParseError when buffer version does not match', () => {
+    expect(() => Spr(710).validate(readFixture(772))).toThrow(ParseError)
+  })
+
+  it('constructor throws UnsupportedVersionError for unsupported version', () => {
+    expect(() => Spr(999)).toThrow(UnsupportedVersionError)
+  })
+})
+
+describe.skipIf(!hasFixture(FIXTURE_772))('spr-772: concrete values', () => {
+  let file: SprFile
+
+  beforeAll(() => {
+    file = loadSpr(772)
+  })
+
+  it('has correct signature', () => {
+    expect(file.signature).toBe(0x439852be)
+  })
+
+  it('has expected sprite count', () => {
+    expect(file.count).toBe(10962)
+  })
+
+  it('get(1) returns a sprite with id 1', () => {
+    expect(file.get(1)?.id).toBe(1)
+  })
+
+  it('get(2) has non-zero pixels (sprite 2 has color data)', () => {
+    expect(file.get(2)!.rgba.some((b) => b !== 0)).toBe(true)
+  })
+
+  it('get() returns undefined for id > count', () => {
+    expect(file.get(file.count + 1)).toBeUndefined()
+  })
+
+  it('entries() iterates all sprites', () => {
+    let count = 0
+    for (const [id, sprite] of file.entries()) {
+      expect(id).toBe(sprite.id)
+      count++
+    }
+    expect(count).toBe(file.count)
+  })
 })

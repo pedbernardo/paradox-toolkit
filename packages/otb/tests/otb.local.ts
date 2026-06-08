@@ -19,9 +19,7 @@ function loadOtb(version: number) {
 
 const FIXTURE_VERSIONS = [740, 760, 772, 860, 870, 960, 1098]
 
-// ─── smoke: all versions ──────────────────────────────────────────────────────
-
-describe('smoke — all fixture versions', () => {
+describe('smoke - all fixture versions', () => {
   for (const version of FIXTURE_VERSIONS) {
     it(`items-${version}: loads and validates without throwing`, () => {
       const buffer = readBuffer(version)
@@ -34,7 +32,7 @@ describe('smoke — all fixture versions', () => {
   }
 })
 
-describe('smoke — all versions: schemaVersion is valid', () => {
+describe('smoke - all versions: schemaVersion is valid', () => {
   for (const version of FIXTURE_VERSIONS) {
     it(`items-${version}: schemaVersion major is a known OTB version`, () => {
       const file = loadOtb(version)
@@ -44,7 +42,7 @@ describe('smoke — all versions: schemaVersion is valid', () => {
   }
 })
 
-describe('smoke — all versions: entries() is consistent with count and get()', () => {
+describe('smoke - all versions: entries() is consistent with count and get()', () => {
   for (const version of FIXTURE_VERSIONS) {
     it(`items-${version}: entries() count matches file.count`, () => {
       const file = loadOtb(version)
@@ -57,8 +55,6 @@ describe('smoke — all versions: entries() is consistent with count and get()',
     })
   }
 })
-
-// ─── items-960 concrete values ────────────────────────────────────────────────
 
 describe('items-960 concrete values', () => {
   const file = loadOtb(960)

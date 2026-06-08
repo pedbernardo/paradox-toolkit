@@ -12,8 +12,6 @@ function load(name: string): Uint8Array {
   return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength)
 }
 
-// ─── small-v1.fixture.otbm — committed, always run ───────────────────────────
-
 describe('small-v1.fixture.otbm', () => {
   const arr = load('small-v1.fixture.otbm')
   let file: OtbmFile
@@ -52,8 +50,6 @@ describe('small-v1.fixture.otbm', () => {
     expect(file.waypoints).toHaveLength(0)
   })
 })
-
-// ─── oldmap-v0.fixture.otbm — committed, always run ──────────────────────────
 
 describe('oldmap-v0.fixture.otbm', () => {
   const arr = load('oldmap-v0.fixture.otbm')

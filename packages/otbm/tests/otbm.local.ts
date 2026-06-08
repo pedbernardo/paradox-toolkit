@@ -12,8 +12,6 @@ function load(name: string) {
   return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength)
 }
 
-// ─── local.medium-v2.otbm — skip if absent ───────────────────────────────────
-
 const mediumV2Path = join(FIXTURES, 'local.medium-v2.otbm')
 describe.skipIf(!existsSync(mediumV2Path))('local.medium-v2.otbm', () => {
   let file: OtbmFile
@@ -53,8 +51,6 @@ describe.skipIf(!existsSync(mediumV2Path))('local.medium-v2.otbm', () => {
   })
 })
 
-// ─── local.medium-v1.otbm — skip if absent ───────────────────────────────────
-
 const mediumV1Path = join(FIXTURES, 'local.medium-v1.otbm')
 describe.skipIf(!existsSync(mediumV1Path))('local.medium-v1.otbm', () => {
   let file: OtbmFile
@@ -85,8 +81,6 @@ describe.skipIf(!existsSync(mediumV1Path))('local.medium-v1.otbm', () => {
     expect(file.waypoints).toHaveLength(0)
   })
 })
-
-// ─── local.large-v0.otbm — skip if absent ────────────────────────────────────
 
 const largeV0Path = join(FIXTURES, 'local.large-v0.otbm')
 describe.skipIf(!existsSync(largeV0Path))('local.large-v0.otbm', () => {
@@ -138,8 +132,6 @@ describe.skipIf(!existsSync(largeV0Path))('local.large-v0.otbm', () => {
     expect(file.waypoints).toHaveLength(0)
   })
 })
-
-// ─── local.xlarge-v1.otbm — skip if absent ───────────────────────────────────
 
 const xlargeV1Path = join(FIXTURES, 'local.xlarge-v1.otbm')
 describe.skipIf(!existsSync(xlargeV1Path))('local.xlarge-v1.otbm', () => {
