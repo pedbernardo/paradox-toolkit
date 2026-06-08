@@ -23,6 +23,8 @@
     "knip": "knip",
     "circular": "depcruise --config .dependency-cruiser.json \"packages/*/src/**/*.ts\"",
     "changeset": "changeset",
+    "version": "changeset version",
+    "release": "changeset publish",
     "attw": "attw --pack",
     "preinstall": "npx only-allow pnpm",
     "prepare": "lefthook install"

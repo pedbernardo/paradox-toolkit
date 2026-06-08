@@ -1,5 +1,8 @@
 import { BufferOverflowError, ByteNotFoundError } from './errors.js'
 
+const textDecoderLatin1 = new TextDecoder('latin1')
+const textDecoderUtf8 = new TextDecoder('utf-8')
+
 export type BinaryReader = {
   u8(): number
   u16(): number
@@ -15,6 +18,15 @@ export type BinaryReader = {
   readonly isEOF: boolean
   readonly offset: number
   readonly byteLength: number
+}
+
+function resolveDecoder(encoding?: string): TextDecoder {
+  if (encoding === 'latin1' || !encoding) {
+    return textDecoderLatin1
+  } else if (encoding === 'utf-8') {
+    return textDecoderUtf8
+  }
+  return new TextDecoder(encoding)
 }
 
 function toDataView(source: ArrayBuffer | Uint8Array): DataView {
@@ -71,7 +83,8 @@ function buildReaderCore(view: DataView): BinaryReader {
       }
       const slice = new Uint8Array(view.buffer, view.byteOffset + cursor, n)
       cursor += n
-      return new TextDecoder(encoding ?? 'latin1').decode(slice)
+      const decoder = resolveDecoder(encoding)
+      return decoder.decode(slice)
     },
 
     bytes(n) {
@@ -301,7 +314,8 @@ export function createEscapedBinaryReader(
       for (let i = 0; i < n; i++) {
         buf[i] = readEscapedByte()
       }
-      return new TextDecoder(encoding ?? 'latin1').decode(buf)
+      const decoder = resolveDecoder(encoding)
+      return decoder.decode(buf)
     },
 
     escU64() {

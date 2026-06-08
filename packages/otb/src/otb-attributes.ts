@@ -1,6 +1,8 @@
 import type { EscapedBinaryReader } from '@paradox/utils'
 import type { OtbItem } from './types.js'
 
+const textDecoderLatin1 = new TextDecoder('latin1')
+
 export const ITEM_ATTRIBUTE = {
   SERVERID: 16,
   CLIENT_ID: 17,
@@ -109,7 +111,7 @@ export const ATTRIBUTE_HANDLERS: Record<number, (props: HandlerProps) => void> =
 }
 
 function readEscStr(reader: EscapedBinaryReader, length: number): string {
-  return new TextDecoder('latin1').decode(reader.escBytes(length))
+  return textDecoderLatin1.decode(reader.escBytes(length))
 }
 
 export function encodeStr(s: string): Uint8Array {
