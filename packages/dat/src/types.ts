@@ -56,7 +56,7 @@ export type ThingLayout = {
   animation?: AnimationData
 }
 
-/** Parsed flag attributes for a thing. All fields are optional — only present flags are set. */
+/** Parsed flag attributes for a thing. All fields are optional - only present flags are set. */
 export type ThingFlags = {
   /** Ground tile with movement speed value */
   ground?: { speed: number }
@@ -150,9 +150,13 @@ export type DatFile = {
   entries(): Iterable<Thing>
 }
 
+export type DatOptions = {
+  strict?: boolean
+}
+
 /** Input for dat.write(). DatFile satisfies this structurally. */
 export type DatWriteInput = {
   version: number
   signature: number
-  things: Thing[]
+  things: readonly Thing[]
 }

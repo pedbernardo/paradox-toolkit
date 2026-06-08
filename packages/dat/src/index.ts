@@ -1,6 +1,7 @@
 export { Dat } from './dat.js'
 export type {
   DatFile,
+  DatOptions,
   DatWriteInput,
   Thing,
   ThingLayout,

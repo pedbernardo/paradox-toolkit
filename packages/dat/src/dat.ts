@@ -7,6 +7,7 @@ import type {
   AnimationData,
   DatFile,
   DatCounts,
+  DatOptions,
   DatWriteInput,
   FrameGroup,
   Thing,
@@ -14,7 +15,7 @@ import type {
   ThingGroup
 } from './types.js'
 
-export type { DatFile }
+export type { DatFile, DatOptions }
 
 type Dat = {
   readonly version: number | undefined
@@ -23,7 +24,9 @@ type Dat = {
   write(data: DatWriteInput): Uint8Array
 }
 
-export function Dat(version?: number): Dat {
+export function Dat(version?: number, opts?: DatOptions): Dat {
+  const strict = opts?.strict ?? false
+
   if (version !== undefined) {
     getVersionFeatures(version)
   }
@@ -128,15 +131,15 @@ export function Dat(version?: number): Dat {
       }
     }
 
+    function resolveGroupMap(group: ThingGroup): Map<number, Thing> {
+      if (group === 'items') return itemsMap
+      if (group === 'creatures') return creaturesMap
+      if (group === 'effects') return effectsMap
+      return missilesMap
+    }
+
     function parseGroup(startId: number, count: number, group: ThingGroup): void {
-      const map =
-        group === 'items'
-          ? itemsMap
-          : group === 'creatures'
-            ? creaturesMap
-            : group === 'effects'
-              ? effectsMap
-              : missilesMap
+      const map = resolveGroupMap(group)
       for (let cid = startId; cid < startId + count; cid++) {
         const thing = parseThing(cid, group)
         if (thing !== null) map.set(cid, thing)
@@ -179,6 +182,7 @@ export function Dat(version?: number): Dat {
         if (frameGroups) thing.frameGroups = frameGroups
         return thing
       } catch (err) {
+        if (strict) throw err
         // oxlint-disable-next-line no-console
         console.warn(`[dat] skipped cid=${cid} group=${group} version=${resolvedVersion}:`, err)
         return null
