@@ -5,6 +5,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 ## Docs & guidelines
 
 - [docs/PNPM.md](docs/PNPM.md) - pnpm workspaces, catalog usage, and publish flow
+- [docs/SCHEMAS.md](docs/SCHEMAS.md) - `content.json` and `positions.json` schema reference
 - [docs/plans/README.md](docs/plans/README.md) - plan naming, lifecycle, phase structure, commit strategy
 
 ## Commands
