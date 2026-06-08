@@ -72,7 +72,7 @@ pnpm add @paradoxlab/dat @paradoxlab/otb
 
 The **OTServer** ecosystem uses a set of binary formats inherited from the original client and servers like TFS (The Forgotten Server):
 
-- **`.dat`** - Visual and layout definitions for every game entity (items, creatures, effects, missiles). One entry per client ID.
+- **`.dat`** - Visual and layout definitions for game entities (items, creatures, effects, missiles). One entry per client ID.
 - **`.spr`** - Sprite data: 32×32 RGBA pixels, RLE-compressed, indexed by sprite ID.
 - **`.otb`** - OTServer item metadata: server IDs, flags, and attributes like name and weight.
 - **`.otbm`** - Map format: a binary tree of tile areas, towns, and waypoints.
