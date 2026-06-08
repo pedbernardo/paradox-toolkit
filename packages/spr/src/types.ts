@@ -5,6 +5,14 @@ export type Sprite = {
   height: 32
 }
 
+export type SprFile = {
+  readonly version: number
+  readonly signature: number
+  readonly count: number
+  get(id: number): Sprite | undefined
+  entries(): Iterable<[number, Sprite]>
+}
+
 export type SprWriteInput =
   | { readonly count: number; get(id: number): Sprite | undefined }
   | Iterable<Sprite | null>

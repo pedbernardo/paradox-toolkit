@@ -1,17 +1,9 @@
 import { createBinaryReader, getVersionFeatures, ParseError } from '@paradox/utils'
 import { SPR_SIGNATURES } from './spr-config.js'
 import { serializeSpr } from './spr-writer.js'
-import type { Sprite, SprWriteInput, SprWriteOpts } from './types.js'
+import type { Sprite, SprFile, SprWriteInput, SprWriteOpts } from './types.js'
 
-export type { Sprite }
-
-export type SprFile = {
-  readonly version: number
-  readonly signature: number
-  readonly count: number
-  get(id: number): Sprite | undefined
-  entries(): Iterable<[number, Sprite]>
-}
+export type { Sprite, SprFile }
 
 type Spr = {
   readonly version: number | undefined
@@ -55,7 +47,7 @@ export function Spr(version?: number): Spr {
     const expected = SPR_SIGNATURES[ver]
     if (expected === undefined || expected === 0) {
       throw new ParseError(
-        `SPR signature unknown for version ${ver} — no fixture available to confirm`
+        `SPR signature unknown for version ${ver} - no fixture available to confirm`
       )
     }
     if (sig !== expected) {
@@ -68,7 +60,7 @@ export function Spr(version?: number): Spr {
   function requireVersion(): number {
     if (version === undefined) {
       throw new ParseError(
-        'SPR write requires an explicit version — construct with Spr(version) instead of Spr()'
+        'SPR write requires an explicit version - construct with Spr(version) instead of Spr()'
       )
     }
     return version
