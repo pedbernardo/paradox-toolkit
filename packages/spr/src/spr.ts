@@ -70,7 +70,7 @@ export function Spr(version?: number): Spr {
     const ver = requireVersion()
     const { onProgress } = opts ?? {}
     const onSprite = onProgress
-      ? (index: number, total: number) => onProgress(total > 0 ? (index + 1) / total : 1)
+      ? (index: number, total: number) => onProgress((index + 1) / total)
       : undefined
     const chunks = serializeSpr(input, ver, onSprite)
     const totalLen = chunks.reduce((s, c) => s + c.length, 0)
@@ -97,7 +97,7 @@ export function Spr(version?: number): Spr {
     for (let i = 0; i < spriteChunkCount; i++) {
       yield chunks[i + 2]!
       await Promise.resolve()
-      opts?.onProgress?.(spriteChunkCount > 0 ? (i + 1) / spriteChunkCount : 1)
+      opts?.onProgress?.((i + 1) / spriteChunkCount)
     }
   }
 
