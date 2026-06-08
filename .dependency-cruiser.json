@@ -14,8 +14,8 @@
       "name": "no-reader-cross-deps",
       "comment": "Readers (dat, spr, otb, otbm) are fully independent — they may only depend on utils, never on each other.",
       "severity": "error",
-      "from": { "path": "^packages/(dat|spr|otb|otbm)" },
-      "to": { "path": "^packages/(dat|spr|otb|otbm)" }
+      "from": { "path": "^packages/(dat|spr|otb|otbm)/" },
+      "to": { "path": "^packages/(dat|spr|otb|otbm)/", "pathNot": "^packages/$1/" }
     }
   ],
   "options": {
