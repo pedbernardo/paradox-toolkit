@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { beforeAll, describe, expect, it } from 'vitest'
@@ -8,6 +8,7 @@ import { ITEM_GROUP } from '../src/otb-config.js'
 
 const dirname = fileURLToPath(new URL('.', import.meta.url))
 const fixture = (name: string) => join(dirname, '..', 'fixtures', name)
+const hasFixture = (name: string) => existsSync(fixture(name))
 
 function readFixture(version: number): ArrayBuffer {
   const buf = readFileSync(fixture(`items-${version}.otb`))
@@ -18,7 +19,7 @@ function loadOtb(version: number): OtbFile {
   return Otb().load(readFixture(version))
 }
 
-describe('items-772.otb', () => {
+describe.skipIf(!hasFixture('items-772.otb'))('items-772.otb', () => {
   let file: OtbFile
 
   beforeAll(() => {
@@ -75,7 +76,7 @@ describe('items-772.otb', () => {
   })
 })
 
-describe('items-960.otb', () => {
+describe.skipIf(!hasFixture('items-960.otb'))('items-960.otb', () => {
   let file: OtbFile
 
   beforeAll(() => {
