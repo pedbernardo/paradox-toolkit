@@ -1,7 +1,16 @@
 {
   "name": "paradox-toolkit",
   "private": true,
+  "description": "A TypeScript toolkit for OTServer development",
+  "keywords": [
+    "OTServer",
+    "binary",
+    "parser",
+    "spritesheet",
+    "toolkit"
+  ],
   "license": "MIT",
+  "author": "Pedro Bernardo <pedrovbernardo@gmail.com>",
   "scripts": {
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",

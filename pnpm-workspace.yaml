@@ -11,21 +11,21 @@ catalogs:
     '@commitlint/cli': ^21.0.2
     '@commitlint/config-conventional': ^21.0.2
     '@sinclair/typebox': ^0.34.49
-    '@types/node': ^22.19.19
-    '@vitest/coverage-v8': ^4.1.6
-    commander: ^14.0.3
-    dependency-cruiser: ^16.0.0
-    fast-check: ^3.22.0
-    knip: ^6.14.1
-    lefthook: ^2.1.6
-    lint-staged: ^16.1.0
-    oxfmt: ^0.50.0
-    oxlint: ^1.65.0
+    '@types/node': ^25.9.2
+    '@vitest/coverage-v8': ^4.1.8
+    commander: ^15.0.0
+    dependency-cruiser: ^17.4.3
+    fast-check: ^4.8.0
+    knip: ^6.16.1
+    lefthook: ^2.1.9
+    lint-staged: ^17.0.7
+    oxfmt: ^0.54.0
+    oxlint: ^1.69.0
     sharp: ^0.34.5
     tsup: ^8.5.1
-    tsx: ^4.22.0
+    tsx: ^4.22.4
     typescript: ^6.0.3
-    vitest: ^4.1.6
+    vitest: ^4.1.8
 
 pnpm:
   onlyBuiltDependencies:
