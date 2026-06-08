@@ -31,7 +31,13 @@ program
         process.exit(1)
       }
 
-      const output = await Spriter({ spr: loaded.spr, maxWidth: opts.maxWidth }).build()
+      let output
+      try {
+        output = await Spriter({ spr: loaded.spr, maxWidth: opts.maxWidth }).build()
+      } catch (err) {
+        console.error(`Error: ${err instanceof Error ? err.message : String(err)}`)
+        process.exit(1)
+      }
 
       const written = writeSpritesheet(output, resolve(opts.out), { versioned: opts.versioned })
       if (!written.ok) {
