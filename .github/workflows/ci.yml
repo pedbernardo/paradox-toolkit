@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint & format
+        run: pnpm check
+
+      - name: Test with coverage
+        run: pnpm coverage
+
+      - name: Dead code check
+        run: pnpm knip
+
+      - name: Circular dependency check
+        run: pnpm circular
+
+      # attw is excluded until it supports TypeScript 6
+      # Track: https://github.com/arethetypeswrong/arethetypeswrong.github.io/issues
+      - name: Type exports check (warn)
+        run: pnpm attw --pack
+        continue-on-error: true
