@@ -27,9 +27,7 @@ function serialize(input: OtbmWriteInput): Uint8Array {
   return concat(serializeOtbm(input))
 }
 
-// ─── header chunk ─────────────────────────────────────────────────────────────
-
-describe('serializeOtbm — header chunk', () => {
+describe('serializeOtbm - header chunk', () => {
   it('starts with 4-byte magic 0x00000000', () => {
     const buf = serialize({ header: BASE_HEADER, areas: [], towns: [], waypoints: [] })
     const view = new DataView(buf.buffer)
@@ -68,9 +66,7 @@ describe('serializeOtbm — header chunk', () => {
   })
 })
 
-// ─── tile area ────────────────────────────────────────────────────────────────
-
-describe('serializeOtbm — tile area', () => {
+describe('serializeOtbm - tile area', () => {
   it('regular tile: offset calculated correctly from baseX/baseY', () => {
     const input: OtbmWriteInput = {
       header: BASE_HEADER,
@@ -147,9 +143,7 @@ describe('serializeOtbm — tile area', () => {
   })
 })
 
-// ─── items ────────────────────────────────────────────────────────────────────
-
-describe('serializeOtbm — items', () => {
+describe('serializeOtbm - items', () => {
   it('compact item (sid-only) written inline and round-trips correctly', () => {
     const input: OtbmWriteInput = {
       header: BASE_HEADER,
@@ -264,9 +258,7 @@ describe('serializeOtbm — items', () => {
   })
 })
 
-// ─── towns and waypoints ──────────────────────────────────────────────────────
-
-describe('serializeOtbm — towns', () => {
+describe('serializeOtbm - towns', () => {
   it('town node round-trips with id, name, x, y, z', () => {
     const input: OtbmWriteInput = {
       header: BASE_HEADER,
@@ -284,7 +276,7 @@ describe('serializeOtbm — towns', () => {
   })
 })
 
-describe('serializeOtbm — waypoints', () => {
+describe('serializeOtbm - waypoints', () => {
   it('waypoint node round-trips with name, x, y, z', () => {
     const input: OtbmWriteInput = {
       header: BASE_HEADER,
@@ -301,9 +293,7 @@ describe('serializeOtbm — waypoints', () => {
   })
 })
 
-// ─── validation ───────────────────────────────────────────────────────────────
-
-describe('serializeOtbm — validation', () => {
+describe('serializeOtbm - validation', () => {
   it('throws RangeError when tile offset exceeds 255', () => {
     const input: OtbmWriteInput = {
       header: BASE_HEADER,
@@ -356,9 +346,7 @@ describe('serializeOtbm — validation', () => {
   })
 })
 
-// ─── escape sequences ─────────────────────────────────────────────────────────
-
-describe('serializeOtbm — escape sequences', () => {
+describe('serializeOtbm - escape sequences', () => {
   it('tile with flags containing 0xFF byte round-trips correctly', () => {
     // flags = 0xFF000000 → low byte = 0x00, ..., high byte = 0xFF (needs escaping)
     const input: OtbmWriteInput = {
@@ -390,9 +378,7 @@ describe('serializeOtbm — escape sequences', () => {
   })
 })
 
-// ─── onArea callback ──────────────────────────────────────────────────────────
-
-describe('serializeOtbm — onArea callback', () => {
+describe('serializeOtbm - onArea callback', () => {
   it('called once per tile area with correct index and total', () => {
     const calls: Array<[number, number]> = []
     const input: OtbmWriteInput = {

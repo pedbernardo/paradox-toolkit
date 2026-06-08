@@ -60,7 +60,7 @@ async function main(): Promise<void> {
   }
 
   const hr = (w: number) => '-'.repeat(w)
-  console.log(`\nspr.bench — ${fixtures.length} fixture(s)\n`)
+  console.log(`\nspr.bench - ${fixtures.length} fixture(s)\n`)
   console.log(
     `  ${'fixture'.padEnd(CW.fixture)} ${'size'.padStart(CW.size)}` +
       `  ${'write'.padStart(CW.writeMs)}  ${'MB/s'.padStart(CW.writeMbs)}` +

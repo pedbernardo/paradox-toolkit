@@ -59,9 +59,7 @@ function buildAttr(attrId: number, data: number[]): number[] {
 // Builds a u16 as 2 little-endian bytes (no escape)
 const u16 = (v: number) => [v & 0xff, (v >> 8) & 0xff]
 
-// ─── validate() ──────────────────────────────────────────────────────────────
-
-describe('Otb — validate()', () => {
+describe('Otb - validate()', () => {
   it('passes for a valid buffer', () => {
     expect(() => Otb().validate(buildOtb(3, 57, 0))).not.toThrow()
   })
@@ -83,9 +81,7 @@ describe('Otb — validate()', () => {
   })
 })
 
-// ─── load() ──────────────────────────────────────────────────────────────────
-
-describe('Otb — load()', () => {
+describe('Otb - load()', () => {
   it('returns OtbFile with correct schemaVersion', () => {
     expect(Otb().load(buildOtb(3, 57, 0)).schemaVersion).toBe('3.57.0')
   })
@@ -103,9 +99,7 @@ describe('Otb — load()', () => {
   })
 })
 
-// ─── count ───────────────────────────────────────────────────────────────────
-
-describe('OtbFile — count', () => {
+describe('OtbFile - count', () => {
   it('is 0 when no item nodes present', () => {
     expect(Otb().load(buildOtb(3, 57, 0)).count).toBe(0)
   })
@@ -125,9 +119,7 @@ describe('OtbFile — count', () => {
   })
 })
 
-// ─── get() ───────────────────────────────────────────────────────────────────
-
-describe('OtbFile — get()', () => {
+describe('OtbFile - get()', () => {
   it('returns undefined for non-existent sid', () => {
     const file = Otb().load(buildOtb(3, 57, 0))
     expect(file.get(999)).toBeUndefined()
@@ -146,9 +138,7 @@ describe('OtbFile — get()', () => {
   })
 })
 
-// ─── entries() ───────────────────────────────────────────────────────────────
-
-describe('OtbFile — entries()', () => {
+describe('OtbFile - entries()', () => {
   it('yields [sid, OtbItem] tuples', () => {
     const item1 = buildItemNode(ITEM_GROUP.GROUND, 0)
     const item2 = buildItemNode(ITEM_GROUP.CONTAINER, 0)
@@ -167,9 +157,7 @@ describe('OtbFile — entries()', () => {
   })
 })
 
-// ─── sid auto-increment ──────────────────────────────────────────────────
-
-describe('OtbFile — sid auto-increment', () => {
+describe('OtbFile - sid auto-increment', () => {
   it('item with sid=0 in file receives sid=100', () => {
     const item = buildItemNode(ITEM_GROUP.GROUND, 0) // no SERVERID attr → sid stays 0
     const file = Otb().load(buildOtb(3, 57, 0, item))
@@ -193,9 +181,7 @@ describe('OtbFile — sid auto-increment', () => {
   })
 })
 
-// ─── DEPRECATED group ────────────────────────────────────────────────────────
-
-describe('OtbFile — DEPRECATED group', () => {
+describe('OtbFile - DEPRECATED group', () => {
   it('DEPRECATED item is not returned by get()', () => {
     const item = buildItemNode(ITEM_GROUP.DEPRECATED, 0)
     const file = Otb().load(buildOtb(3, 57, 0, item))
@@ -204,9 +190,7 @@ describe('OtbFile — DEPRECATED group', () => {
   })
 })
 
-// ─── RUNE group ──────────────────────────────────────────────────────────────
-
-describe('OtbFile — RUNE group', () => {
+describe('OtbFile - RUNE group', () => {
   it('RUNE item has clientCharges=true regardless of flags bitmask', () => {
     const item = buildItemNode(ITEM_GROUP.RUNE, 0)
     const file = Otb().load(buildOtb(3, 57, 0, item))
@@ -214,9 +198,7 @@ describe('OtbFile — RUNE group', () => {
   })
 })
 
-// ─── attributes ──────────────────────────────────────────────────────────────
-
-describe('OtbFile — attributes', () => {
+describe('OtbFile - attributes', () => {
   it('parses NAME attribute', () => {
     const nameBytes = Array.from('Sword').map((c) => c.charCodeAt(0))
     const attr = buildAttr(ITEM_ATTRIBUTE.NAME, nameBytes)
@@ -252,7 +234,7 @@ describe('OtbFile — attributes', () => {
     expect(loaded.attributes.speed).toBe(80)
   })
 
-  it('handles escape sequence in attribute data — sid 0xFE (254)', () => {
+  it('handles escape sequence in attribute data - sid 0xFE (254)', () => {
     // sid 254 = 0xFE → stored escaped as [0xFD, 0xFE] in the attr payload
     // attr: [id=16, len=2, lenHi=0, 0xFD, 0xFE, 0x00]
     const escAttr = [ITEM_ATTRIBUTE.SERVERID, 0x02, 0x00, 0xfd, 0xfe, 0x00]
@@ -368,9 +350,7 @@ describe('OtbFile — attributes', () => {
   })
 })
 
-// ─── items property ──────────────────────────────────────────────────────────
-
-describe('OtbFile — items', () => {
+describe('OtbFile - items', () => {
   it('is an empty array when no items are present', () => {
     expect(Otb().load(buildOtb(3, 57, 0)).items).toHaveLength(0)
   })

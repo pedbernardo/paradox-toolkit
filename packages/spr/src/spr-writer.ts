@@ -9,22 +9,22 @@ export function serializeSpr(
 ): Uint8Array[] {
   const features = getVersionFeatures(version)
   const sig = SPR_SIGNATURES[version]
+
   if (sig === undefined || sig === 0) {
     throw new ParseError(
-      `SPR signature unknown for version ${version} — no fixture available to confirm`
+      `SPR signature unknown for version ${version} - no fixture available to confirm`
     )
   }
 
   const { extendedSprites } = features
-
   const sprites = resolveInput(data)
   const count = sprites.length
   const headerSize = extendedSprites ? 8 : 6
   const tableSize = count * 4
   const baseOffset = headerSize + tableSize
-
   const spriteChunks: Uint8Array[] = []
   const addresses: number[] = []
+
   let currentOffset = baseOffset
 
   for (let i = 0; i < count; i++) {

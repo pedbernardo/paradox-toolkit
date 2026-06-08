@@ -52,7 +52,7 @@ const result = Otb().validate(readFileSync('items.otb'))
 
 ### `Otb()`
 
-Factory returning `{ load, write, validate }`. Unlike DAT/SPR, OTB has no version parameter — the schema version is read from the file header.
+Factory returning `{ load, write, validate }`. Unlike DAT/SPR, OTB has no version parameter - the schema version is read from the file header.
 
 ### `.load(buffer: ArrayBuffer | Uint8Array): OtbFile`
 

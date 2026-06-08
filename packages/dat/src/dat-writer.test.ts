@@ -44,7 +44,7 @@ function minCreature(cid: number): Thing {
   }
 }
 
-describe('Dat — write() header', () => {
+describe('Dat - write() header', () => {
   it('writes correct signature for version 772', () => {
     const data: DatWriteInput = { version: 772, signature: 0, things: [minItem(100)] }
     const out = Dat(772).write(data)
@@ -83,7 +83,7 @@ describe('Dat — write() header', () => {
   })
 })
 
-describe('Dat — write() layout', () => {
+describe('Dat - write() layout', () => {
   it('realSize emitted only when width > 1 or height > 1', () => {
     const thinItem: Thing = {
       cid: 100,
@@ -118,7 +118,7 @@ describe('Dat — write() layout', () => {
   })
 })
 
-describe('Dat — write() AnimationData', () => {
+describe('Dat - write() AnimationData', () => {
   it('animationData with signed loopCount and startPhase survives write', () => {
     const item: Thing = {
       cid: 100,
@@ -160,7 +160,7 @@ describe('Dat — write() AnimationData', () => {
   })
 })
 
-describe('Dat — write() MarketData', () => {
+describe('Dat - write() MarketData', () => {
   it('item with market flag serializes all 6 fields correctly', () => {
     const item: Thing = {
       cid: 100,
@@ -202,7 +202,7 @@ describe('Dat — write() MarketData', () => {
   })
 })
 
-describe('Dat — write() frameGroups', () => {
+describe('Dat - write() frameGroups', () => {
   it('creature with frameGroups writes groupCount + groupType per group', () => {
     const creature: Thing = {
       cid: 1,
@@ -262,7 +262,7 @@ describe('Dat — write() frameGroups', () => {
   })
 })
 
-describe('Dat — write() version consistency', () => {
+describe('Dat - write() version consistency', () => {
   it('Dat(772).write({ version: 760, ... }) throws ParseError', () => {
     const data: DatWriteInput = { version: 760, signature: 0, things: [minItem(100)] }
     expect(() => Dat(772).write(data)).toThrow(ParseError)
@@ -277,7 +277,7 @@ describe('Dat — write() version consistency', () => {
   })
 })
 
-describe('Dat — write() no items edge case', () => {
+describe('Dat - write() no items edge case', () => {
   it('itemsMaxCid is startId-1 when things has no items', () => {
     const data: DatWriteInput = { version: 772, signature: 0, things: [] }
     const buf = Dat(772).write(data)

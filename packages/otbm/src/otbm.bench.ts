@@ -1,7 +1,7 @@
 /**
  * OTBM parse throughput benchmark
  *
- * pnpm bench                              -- all available fixtures, sequential
+ * pnpm bench                             -- all available fixtures, sequential
  * pnpm bench -- local.xlarge-v1          -- single fixture (with or without .otbm)
  * pnpm bench -- --profile                -- all fixtures + CPU profile
  * pnpm bench -- local.xlarge-v1 --profile
@@ -21,7 +21,7 @@ import { Otbm } from './otbm.js'
 // local.medium-v2.otbm            33.0MB   4,283ms     7.7   3,342,051   4,354,448      5
 // local.xlarge-v1.otbm            78.7MB   9,264ms     8.5   7,835,011   8,602,187     10  (smoke run)
 //
-// Bottleneck: object allocation per tile/item — byte scanning is constant across sizes.
+// Bottleneck: object allocation per tile/item - byte scanning is constant across sizes.
 
 const FIXTURES_DIR = join(import.meta.dirname, '../fixtures')
 const PASSTHROUGH_LOOKUP = { getBySid: (sid: number) => ({ cid: sid }) }
@@ -102,7 +102,7 @@ async function main() {
   const fixtures = targetName ? [resolveFixtureName(targetName)] : discoverFixtures()
 
   console.log(
-    `\notbm.bench — ${fixtures.length} fixture(s)${enableProfile ? ' [profiling]' : ''}\n`
+    `\notbm.bench - ${fixtures.length} fixture(s)${enableProfile ? ' [profiling]' : ''}\n`
   )
 
   const hr = (w: number) => '-'.repeat(w)

@@ -640,7 +640,7 @@ describe('createEscapedBinaryReader', () => {
       expect(r.offset).toBe(2)
     })
 
-    it('skips an escaped target — [0xFD, 0xFE] is data, not a boundary', () => {
+    it('skips an escaped target - [0xFD, 0xFE] is data, not a boundary', () => {
       // [0xFD, 0xFE] = escaped 0xFE (data byte); plain 0xFF = boundary
       const r = createEscapedBinaryReader(new Uint8Array([0xfd, 0xfe, 0xff]).buffer)
       expect(r.seekNodeBoundary([0xfe, 0xff])).toBe(0xff)

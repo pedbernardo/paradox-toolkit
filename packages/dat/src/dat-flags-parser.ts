@@ -63,7 +63,7 @@ export function createFlagsParser(
     if (flagName === 'END_OF_FLAGS') continue
     const displayName = snakeCaseToCamelCase(flagName)
 
-    // HAS_OFFSET is boolean in DAT format 74 (versions <= 750) — no extra bytes
+    // HAS_OFFSET is boolean in DAT format 74 (versions <= 750) - no extra bytes
     const advanced =
       flagName === 'HAS_OFFSET' && version <= 750 ? undefined : ADVANCED_RULES[flagName]
 
@@ -132,13 +132,13 @@ const WRITE_PAYLOADS: Partial<Record<string, WritePayloadFn>> = {
   CLOTH: (writer, value) => writer.u16((value as { slot: number }).slot),
   USABLE: (writer, value) => writer.u16((value as { value: number }).value),
   MARKET: (writer, value) => {
-    const m = value as MarketData
-    writer.u16(m.category)
-    writer.u16(m.tradeAs)
-    writer.u16(m.showAs)
-    writer.str(m.name)
-    writer.u16(m.restrictVocation)
-    writer.u16(m.requiredLevel)
+    const market = value as MarketData
+    writer.u16(market.category)
+    writer.u16(market.tradeAs)
+    writer.u16(market.showAs)
+    writer.str(market.name)
+    writer.u16(market.restrictVocation)
+    writer.u16(market.requiredLevel)
   }
 }
 

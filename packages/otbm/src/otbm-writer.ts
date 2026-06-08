@@ -39,7 +39,7 @@ function isCompact(item: OtbmItem): boolean {
 }
 
 // Writes a complete ITEM node (0xFE 0x06 ... 0xFF). Used for non-compact tile items
-// and for all item children — the 0x09 inline-item tile attribute is only valid in
+// and for all item children - the 0x09 inline-item tile attribute is only valid in
 // tile props context, never inside another ITEM node.
 function writeItemNode(w: EscapedBinaryWriter, item: OtbmItem): void {
   validateSid(item.sid)

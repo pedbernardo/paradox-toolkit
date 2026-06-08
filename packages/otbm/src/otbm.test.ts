@@ -5,9 +5,7 @@ import { Otbm } from './otbm.js'
 import { decodeTileFlags } from './otbm-attributes.js'
 import { OTBM_ATTRIBUTE, OTBM_NODE_TYPE, OTBM_TILE_FLAG } from './otbm-config.js'
 
-// ─── Buffer builder ───────────────────────────────────────────────────────────
-
-// Encodes a value as little-endian bytes (no escape sequences — test data avoids 0xFD/FE/FF)
+// Encodes a value as little-endian bytes (no escape sequences - test data avoids 0xFD/FE/FF)
 const u8 = (v: number) => [v & 0xff]
 const u16 = (v: number) => [v & 0xff, (v >> 8) & 0xff]
 const u32 = (v: number) => [v & 0xff, (v >> 8) & 0xff, (v >> 16) & 0xff, (v >> 24) & 0xff]
@@ -137,9 +135,7 @@ function buildOtbmBuffer(opts: OtbmBufferOpts = {}): Uint8Array {
   return new Uint8Array([...magic, ...rootNode])
 }
 
-// ─── validate() ──────────────────────────────────────────────────────────────
-
-describe('Otbm — validate()', () => {
+describe('Otbm - validate()', () => {
   it.each([0, 1, 2, 3])('passes for version %i in magic bytes', (v) => {
     const buf = buildOtbmBuffer()
     const view = new DataView(buf.buffer)
@@ -165,9 +161,7 @@ describe('Otbm — validate()', () => {
   })
 })
 
-// ─── load() — header ─────────────────────────────────────────────────────────
-
-describe('Otbm — load() header', () => {
+describe('Otbm - load() header', () => {
   it('parses version, width, height, majorVersion, minorVersion from v1 buffer', () => {
     const file = Otbm().load(
       buildOtbmBuffer({ version: 1, width: 2000, height: 1500, majorVersion: 3, minorVersion: 57 })
@@ -180,9 +174,7 @@ describe('Otbm — load() header', () => {
   })
 })
 
-// ─── load() — v0 ─────────────────────────────────────────────────────────────
-
-describe('Otbm — load() v0', () => {
+describe('Otbm - load() v0', () => {
   it('throws ParseError for version 0 without OtbLookup', () => {
     expect(() => Otbm().load(buildOtbmBuffer({ version: 0 }))).toThrow(ParseError)
   })
@@ -195,9 +187,7 @@ describe('Otbm — load() v0', () => {
   })
 })
 
-// ─── areas / getTile() ───────────────────────────────────────────────────────
-
-describe('Otbm — tile parsing', () => {
+describe('Otbm - tile parsing', () => {
   it('regular tile has kind=tile and correct pos from baseX+offsetX', () => {
     const buf = buildOtbmBuffer({
       areas: [
@@ -244,9 +234,7 @@ describe('Otbm — tile parsing', () => {
   })
 })
 
-// ─── items ────────────────────────────────────────────────────────────────────
-
-describe('Otbm — item parsing', () => {
+describe('Otbm - item parsing', () => {
   it('inline ITEM attr (0x09) creates item in tile.items', () => {
     const buf = buildOtbmBuffer({
       areas: [
@@ -343,9 +331,7 @@ describe('Otbm — item parsing', () => {
   })
 })
 
-// ─── written / charges / sleep attributes ────────────────────────────────────
-
-describe('Otbm — written, charges, sleep attributes', () => {
+describe('Otbm - written, charges, sleep attributes', () => {
   it('WRITTEN_DATE (0x12) reads u32 into item.writtenDate', () => {
     const attrs = [OTBM_ATTRIBUTE.WRITTEN_DATE, ...u32(1716681600)]
     const buf = buildOtbmBuffer({
@@ -448,9 +434,7 @@ describe('Otbm — written, charges, sleep attributes', () => {
   })
 })
 
-// ─── unknown attributes ───────────────────────────────────────────────────────
-
-describe('Otbm — unknown attributes', () => {
+describe('Otbm - unknown attributes', () => {
   it('throws ParseError for unknown item attribute in v1+', () => {
     const attrs = [0x7f, 0x01, 0x02] // 0x7F is not a known attribute
     const buf = buildOtbmBuffer({
@@ -468,9 +452,7 @@ describe('Otbm — unknown attributes', () => {
   })
 })
 
-// ─── towns ────────────────────────────────────────────────────────────────────
-
-describe('Otbm — towns', () => {
+describe('Otbm - towns', () => {
   it('returns towns with id, name and pos', () => {
     const buf = buildOtbmBuffer({
       towns: [{ id: 1, name: 'Capital', x: 100, y: 200, z: 7 }]
@@ -485,9 +467,7 @@ describe('Otbm — towns', () => {
   })
 })
 
-// ─── waypoints ────────────────────────────────────────────────────────────────
-
-describe('Otbm — waypoints', () => {
+describe('Otbm - waypoints', () => {
   it('returns empty array for version 1 (no waypoints section)', () => {
     const buf = buildOtbmBuffer({
       version: 1,
@@ -510,9 +490,7 @@ describe('Otbm — waypoints', () => {
   })
 })
 
-// ─── onProgress ──────────────────────────────────────────────────────────────
-
-describe('Otbm — onProgress', () => {
+describe('Otbm - onProgress', () => {
   it('is called once per tile area, last value is 1', () => {
     const calls: number[] = []
     const buf = buildOtbmBuffer({
@@ -553,9 +531,7 @@ describe('Otbm — onProgress', () => {
   })
 })
 
-// ─── getStats() ───────────────────────────────────────────────────────────────
-
-describe('Otbm — getStats()', () => {
+describe('Otbm - getStats()', () => {
   it('counts areas, tiles, houseTiles, items, nestedItems, towns, waypoints correctly', () => {
     const buf = buildOtbmBuffer({
       version: 2,
@@ -591,9 +567,7 @@ describe('Otbm — getStats()', () => {
   })
 })
 
-// ─── OtbmWriteInput structural subtyping ─────────────────────────────────────
-
-describe('Otbm — OtbmWriteInput structural subtyping', () => {
+describe('Otbm - OtbmWriteInput structural subtyping', () => {
   it('OtbmFile satisfies OtbmWriteInput without cast', () => {
     const file = Otbm().load(buildOtbmBuffer())
     // type-level assertion: if this compiles, OtbmFile structurally satisfies OtbmWriteInput
@@ -613,9 +587,7 @@ describe('Otbm — OtbmWriteInput structural subtyping', () => {
   })
 })
 
-// ─── getTile contract after mutation ─────────────────────────────────────────
-
-describe('Otbm — getTile contract after mutation', () => {
+describe('Otbm - getTile contract after mutation', () => {
   it('tile added to areas[0].tiles after load is NOT found by getTile (snapshot contract)', () => {
     const buf = buildOtbmBuffer({
       areas: [{ baseX: 0, baseY: 0, baseZ: 7, tiles: [{ offsetX: 0, offsetY: 0 }] }]
@@ -636,9 +608,7 @@ describe('Otbm — getTile contract after mutation', () => {
   })
 })
 
-// ─── ArrayBuffer input ────────────────────────────────────────────────────────
-
-describe('Otbm — ArrayBuffer input', () => {
+describe('Otbm - ArrayBuffer input', () => {
   it('accepts ArrayBuffer in addition to Uint8Array', () => {
     const uint8 = buildOtbmBuffer()
     const ab = uint8.buffer.slice(
@@ -649,11 +619,9 @@ describe('Otbm — ArrayBuffer input', () => {
   })
 })
 
-// ─── load() edge cases ────────────────────────────────────────────────────────
-
-describe('Otbm — load() edge cases', () => {
+describe('Otbm - load() edge cases', () => {
   it('throws ParseError when buffer has no root node (header stays null)', () => {
-    // magic bytes followed by non-special bytes — parser never enters a node,
+    // magic bytes followed by non-special bytes - parser never enters a node,
     // header is never set
     const buf = new Uint8Array([0x00, 0x00, 0x00, 0x00, 0x01, 0x02, 0x03, 0x04])
     expect(() => Otbm().load(buf)).toThrow(ParseError)
@@ -679,16 +647,14 @@ describe('Otbm — load() edge cases', () => {
       0x03,
       0x00,
       0x00,
-      0x00, // majorVersion=3  — 12 bytes total, needs 16
+      0x00, // majorVersion=3  - 12 bytes total, needs 16
       0xff // END → triggers "props too short" error
     ])
     expect(() => Otbm().load(buf)).toThrow(ParseError)
   })
 })
 
-// ─── remaining item attribute handlers ───────────────────────────────────────
-
-describe('Otbm — remaining item attribute handlers', () => {
+describe('Otbm - remaining item attribute handlers', () => {
   function tileWithItem(attrs: number[]): Uint8Array {
     return buildOtbmBuffer({
       areas: [
@@ -745,9 +711,7 @@ describe('Otbm — remaining item attribute handlers', () => {
   })
 })
 
-// ─── non-strict mode (v0) attribute parsing ───────────────────────────────────
-
-describe('Otbm — non-strict mode (v0) attribute parsing', () => {
+describe('Otbm - non-strict mode (v0) attribute parsing', () => {
   const lookup: OtbLookup = { getBySid: () => ({ cid: 1 }) }
 
   it('parseTileAttrs non-strict: known handler is called without strict enforcement', () => {
@@ -760,7 +724,7 @@ describe('Otbm — non-strict mode (v0) attribute parsing', () => {
   })
 
   it('parseTileAttrs non-strict: BufferOverflowError in handler is caught and tile is still added', () => {
-    // TILE_FLAGS handler reads u32 but only 1 byte follows — BufferOverflowError caught
+    // TILE_FLAGS handler reads u32 but only 1 byte follows - BufferOverflowError caught
     const buf = new Uint8Array([
       0x00,
       0x00,
@@ -827,7 +791,7 @@ describe('Otbm — non-strict mode (v0) attribute parsing', () => {
   })
 
   it('parseItemAttrs non-strict: BufferOverflowError in handler is caught and item is still added', () => {
-    // ACTION_ID handler reads u16 but only 1 byte follows — BufferOverflowError caught
+    // ACTION_ID handler reads u16 but only 1 byte follows - BufferOverflowError caught
     const buf = new Uint8Array([
       0x00,
       0x00,
@@ -882,8 +846,6 @@ describe('Otbm — non-strict mode (v0) attribute parsing', () => {
   })
 })
 
-// ─── decodeTileFlags ─────────────────────────────────────────────────────────
-
 describe('decodeTileFlags', () => {
   it('decodes each flag bit independently', () => {
     expect(decodeTileFlags(OTBM_TILE_FLAG.PROTECTION_ZONE).protectionZone).toBe(true)
@@ -903,9 +865,7 @@ describe('decodeTileFlags', () => {
   })
 })
 
-// ─── tile-level ACTION_ID attr ────────────────────────────────────────────────
-
-describe('Otbm — tile-level ACTION_ID attr', () => {
+describe('Otbm - tile-level ACTION_ID attr', () => {
   it('tile ACTION_ID (0x04) is preserved in tile.actionId', () => {
     const buf = buildOtbmBuffer({
       areas: [
@@ -930,9 +890,7 @@ describe('Otbm — tile-level ACTION_ID attr', () => {
   })
 })
 
-// ─── countTileAreas ESCAPE handling ──────────────────────────────────────────
-
-describe('Otbm — countTileAreas ESCAPE handling', () => {
+describe('Otbm - countTileAreas ESCAPE handling', () => {
   it('onProgress fires correctly when MAP_DATA props contain an ESCAPE sequence (0xFD 0xFD)', () => {
     // countTileAreas is only called when onProgress is provided; the 0xFD 0xFD in
     // MAP_DATA props exercises the escape-skip branch (i += 2) in that raw-byte scan
@@ -986,9 +944,7 @@ describe('Otbm — countTileAreas ESCAPE handling', () => {
   })
 })
 
-// ─── write() ──────────────────────────────────────────────────────────────────
-
-describe('Otbm — write()', () => {
+describe('Otbm - write()', () => {
   it('round-trip: load → write → load produces semantically equivalent data', () => {
     const buf = buildOtbmBuffer({
       version: 2,
@@ -1119,9 +1075,45 @@ describe('Otbm — write()', () => {
   })
 })
 
-// ─── writeStream() ────────────────────────────────────────────────────────────
+describe('Otbm - depth guard', () => {
+  function buildNestedChain(depth: number): ItemSpec {
+    if (depth === 0) return { sid: 0 }
+    return { sid: depth, children: [buildNestedChain(depth - 1)] }
+  }
 
-describe('Otbm — writeStream()', () => {
+  it('throws ParseError when nesting exceeds MAX_OTBM_DEPTH (32 START bytes)', () => {
+    // WORLD(d=0) > MAP_DATA(d=1) > TILE_AREA(d=2) > TILE(d=3) > 29 ITEMs (d=4..32)
+    // The 29th item would push depth to 32; guard fires at `depth >= 31` check
+    const buf = buildOtbmBuffer({
+      areas: [
+        {
+          baseX: 0,
+          baseY: 0,
+          baseZ: 7,
+          tiles: [{ offsetX: 0, offsetY: 0, items: [buildNestedChain(28)] }]
+        }
+      ]
+    })
+    expect(() => Otbm().load(buf)).toThrow(ParseError)
+  })
+
+  it('does not throw when nesting is exactly at MAX_OTBM_DEPTH (31 START bytes)', () => {
+    // 28 nested items: depths 4..31 - last item opens at depth 31, within limit
+    const buf = buildOtbmBuffer({
+      areas: [
+        {
+          baseX: 0,
+          baseY: 0,
+          baseZ: 7,
+          tiles: [{ offsetX: 0, offsetY: 0, items: [buildNestedChain(27)] }]
+        }
+      ]
+    })
+    expect(() => Otbm().load(buf)).not.toThrow()
+  })
+})
+
+describe('Otbm - writeStream()', () => {
   async function collectStream(iter: AsyncIterable<Uint8Array>): Promise<Uint8Array> {
     const chunks: Uint8Array[] = []
     for await (const chunk of iter) chunks.push(chunk)

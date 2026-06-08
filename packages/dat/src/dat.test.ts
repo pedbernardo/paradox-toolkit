@@ -89,7 +89,7 @@ function buildMarketDat960(): Uint8Array {
   buf.setUint8(off++, 1) // patternY
   buf.setUint8(off++, 1) // patternZ
   buf.setUint8(off++, 1) // frames
-  buf.setUint32(off, 7, true) // spriteId = 7 (u32 — extendedSprites on 960)
+  buf.setUint32(off, 7, true) // spriteId = 7 (u32 - extendedSprites on 960)
 
   return new Uint8Array(ab)
 }
@@ -215,7 +215,7 @@ function buildFrameGroupsDat1098(): Uint8Array {
   return new Uint8Array(ab)
 }
 
-describe('Dat — constructor', () => {
+describe('Dat - constructor', () => {
   it('throws UnsupportedVersionError for unsupported version', () => {
     expect(() => Dat(999)).toThrow(UnsupportedVersionError)
   })
@@ -229,7 +229,7 @@ describe('Dat — constructor', () => {
   })
 })
 
-describe('Dat — validate()', () => {
+describe('Dat - validate()', () => {
   it('does not throw when signature matches explicit version', () => {
     const dat = Dat(772)
     expect(() => dat.validate(buildMinimalDat772())).not.toThrow()
@@ -256,7 +256,7 @@ describe('Dat — validate()', () => {
   })
 })
 
-describe('Dat — load()', () => {
+describe('Dat - load()', () => {
   it('returns a DatFile with version and signature', () => {
     const file = Dat(772).load(buildMinimalDat772())
     expect(file.version).toBe(772)
@@ -324,7 +324,7 @@ describe('Dat — load()', () => {
   })
 
   it('Dat(772) throws ParseError when buffer signature does not match version', () => {
-    const wrongSig = new Uint8Array(22) // all zeros — wrong signature
+    const wrongSig = new Uint8Array(22) // all zeros - wrong signature
     expect(() => Dat(772).load(wrongSig)).toThrow(ParseError)
   })
 
@@ -336,7 +336,7 @@ describe('Dat — load()', () => {
   })
 })
 
-describe('Dat — MARKET flag (9.6+)', () => {
+describe('Dat - MARKET flag (9.6+)', () => {
   it('parses MARKET into full MarketData object', () => {
     const file = Dat(960).load(buildMarketDat960())
     const market = file.get('items', 100)?.flags.market
@@ -362,7 +362,7 @@ describe('Dat — MARKET flag (9.6+)', () => {
   })
 })
 
-describe('Dat — AnimationData (10.30+)', () => {
+describe('Dat - AnimationData (10.30+)', () => {
   it('parses animation when frames > 1 and version has frameDurations', () => {
     const file = Dat(1098).load(buildAnimationDat1098())
     const layout = file.get('items', 100)?.layout
@@ -389,7 +389,7 @@ describe('Dat — AnimationData (10.30+)', () => {
   })
 })
 
-describe('Dat — frameGroups (10.57+)', () => {
+describe('Dat - frameGroups (10.57+)', () => {
   it('creature with 2 groups has frameGroups with length 2', () => {
     const file = Dat(1098).load(buildFrameGroupsDat1098())
     const creature = file.get('creatures', 1)
@@ -415,5 +415,23 @@ describe('Dat — frameGroups (10.57+)', () => {
   it('item in 1098 has no frameGroups', () => {
     const file = Dat(1098).load(buildAnimationDat1098())
     expect(file.get('items', 100)?.frameGroups).toBeUndefined()
+  })
+})
+
+describe('Dat - strict mode', () => {
+  // Truncated DAT: valid header but last byte of spriteId is missing.
+  // parseThing throws BufferOverflowError when reading the sprite list.
+  function buildTruncatedDat772(): Uint8Array {
+    const valid = buildMinimalDat772()
+    return valid.slice(0, valid.length - 1)
+  }
+
+  it('lenient mode (default) skips unparseable thing and returns DatFile without throwing', () => {
+    const file = Dat(772).load(buildTruncatedDat772())
+    expect(file.things).toHaveLength(0) // item 100 was skipped
+  })
+
+  it('strict mode throws when a thing cannot be parsed', () => {
+    expect(() => Dat(772, { strict: true }).load(buildTruncatedDat772())).toThrow()
   })
 })

@@ -5,8 +5,6 @@ import { serializeOtb } from './otb-writer.js'
 import { ITEM_GROUP } from './otb-config.js'
 import type { OtbItem, OtbWriteInput } from './types.js'
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
 function makeItem(sid: number, overrides: Partial<OtbItem> = {}): OtbItem {
   return {
     sid,
@@ -50,9 +48,7 @@ function roundTrip(input: OtbWriteInput) {
   return Otb().load(serializeOtb(input))
 }
 
-// ─── round-trip ───────────────────────────────────────────────────────────────
-
-describe('serializeOtb — round-trip', () => {
+describe('serializeOtb - round-trip', () => {
   it('empty file round-trips', () => {
     const file = roundTrip({ items: [], schemaVersion: '3.57.0' })
     expect(file.count).toBe(0)
@@ -140,9 +136,7 @@ describe('serializeOtb — round-trip', () => {
   })
 })
 
-// ─── LIGHT2 ───────────────────────────────────────────────────────────────────
-
-describe('serializeOtb — LIGHT2', () => {
+describe('serializeOtb - LIGHT2', () => {
   it('writes LIGHT2 (42), not LIGHT (36)', () => {
     const item = makeItem(103, { attributes: { lightLevel: 5, lightColor: 0xe0 } })
     const buf = serializeOtb({ items: [item], schemaVersion: '3.57.0' })
@@ -153,9 +147,7 @@ describe('serializeOtb — LIGHT2', () => {
   })
 })
 
-// ─── validation ───────────────────────────────────────────────────────────────
-
-describe('serializeOtb — validation', () => {
+describe('serializeOtb - validation', () => {
   it('throws ParseError for invalid schemaVersion', () => {
     expect(() => serializeOtb({ items: [], schemaVersion: 'x' })).toThrow(ParseError)
   })
@@ -177,9 +169,7 @@ describe('serializeOtb — validation', () => {
   })
 })
 
-// ─── DEPRECATED ──────────────────────────────────────────────────────────────
-
-describe('serializeOtb — DEPRECATED', () => {
+describe('serializeOtb - DEPRECATED', () => {
   it('DEPRECATED item is absent from output', () => {
     const items = [makeItem(100, { group: ITEM_GROUP.DEPRECATED }), makeItem(101)]
     const file = roundTrip({ items, schemaVersion: '3.57.0' })

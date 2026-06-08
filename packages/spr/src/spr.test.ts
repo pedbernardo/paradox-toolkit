@@ -57,17 +57,13 @@ function spriteDataOffset(spriteCount: number): number {
   return 6 + spriteCount * 4
 }
 
-// ─── Constructor ──────────────────────────────────────────────────────────────
-
-describe('Spr — constructor', () => {
+describe('Spr - constructor', () => {
   it('throws UnsupportedVersionError for unsupported version', () => {
     expect(() => Spr(999)).toThrow(UnsupportedVersionError)
   })
 })
 
-// ─── validate() ──────────────────────────────────────────────────────────────
-
-describe('Spr — validate()', () => {
+describe('Spr - validate()', () => {
   it('does not throw for correct explicit-version signature', () => {
     const spr = Spr(772)
     expect(() => spr.validate(buildSpr(SIG_772, []))).not.toThrow()
@@ -99,9 +95,7 @@ describe('Spr — validate()', () => {
   })
 })
 
-// ─── load() ──────────────────────────────────────────────────────────────────
-
-describe('Spr — load()', () => {
+describe('Spr - load()', () => {
   it('returns SprFile with correct count', () => {
     const file = Spr(772).load(buildSpr(SIG_772, [0, 0, 0]))
     expect(file.count).toBe(3)
@@ -149,9 +143,7 @@ describe('Spr — load()', () => {
   })
 })
 
-// ─── get() ───────────────────────────────────────────────────────────────────
-
-describe('SprFile — get()', () => {
+describe('SprFile - get()', () => {
   it('returns undefined for id = 0', () => {
     const file = Spr(772).load(buildSpr(SIG_772, [0]))
     expect(file.get(0)).toBeUndefined()
@@ -220,9 +212,7 @@ describe('SprFile — get()', () => {
   })
 })
 
-// ─── entries() ───────────────────────────────────────────────────────────────
-
-describe('SprFile — entries()', () => {
+describe('SprFile - entries()', () => {
   it('yields count entries', () => {
     const file = Spr(772).load(buildSpr(SIG_772, [0, 0, 0]))
     expect([...file.entries()]).toHaveLength(3)
@@ -242,8 +232,6 @@ describe('SprFile — entries()', () => {
     expect(file.get(2)).toBe(fromEntries[1])
   })
 })
-
-// ─── helpers for write/writeStream tests ─────────────────────────────────────
 
 function makeSpriteFixture(pixels: { index: number; r: number; g: number; b: number }[]): Sprite {
   const rgba = new Uint8Array(4096)
@@ -269,9 +257,7 @@ async function collectStream(gen: AsyncGenerator<Uint8Array>): Promise<Uint8Arra
   return out
 }
 
-// ─── write() ─────────────────────────────────────────────────────────────────
-
-describe('Spr — write()', () => {
+describe('Spr - write()', () => {
   it('round-trip: sprite with multiple runs is pixel-identical after write → load', () => {
     const original = makeSpriteFixture([
       { index: 0, r: 10, g: 20, b: 30 },
@@ -345,9 +331,7 @@ describe('Spr — write()', () => {
   })
 })
 
-// ─── writeStream() ────────────────────────────────────────────────────────────
-
-describe('Spr — writeStream()', () => {
+describe('Spr - writeStream()', () => {
   it('chunks concatenated equal write() output for same input', async () => {
     const s = makeSpriteFixture([{ index: 0, r: 5, g: 10, b: 15 }])
     const spr = Spr(772)

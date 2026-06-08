@@ -43,9 +43,7 @@ function concat(chunks: Uint8Array[]): Uint8Array {
   return out
 }
 
-// ─── chunk count ─────────────────────────────────────────────────────────────
-
-describe('serializeSpr — chunk structure', () => {
+describe('serializeSpr - chunk structure', () => {
   it('1 null + 2 sprites → 4 chunks (header + table + 2 sprite chunks)', () => {
     const s = makeSprite([{ index: 0, r: 1, g: 2, b: 3 }])
     const chunks = serializeSpr([null, s, s], 772)
@@ -58,9 +56,7 @@ describe('serializeSpr — chunk structure', () => {
   })
 })
 
-// ─── header ──────────────────────────────────────────────────────────────────
-
-describe('serializeSpr — header', () => {
+describe('serializeSpr - header', () => {
   it('non-extended (772): header is 6 bytes with sig u32 + count u16', () => {
     const chunks = serializeSpr([null, null, null], 772)
     const header = chunks[0]!
@@ -78,9 +74,7 @@ describe('serializeSpr — header', () => {
   })
 })
 
-// ─── address table ────────────────────────────────────────────────────────────
-
-describe('serializeSpr — address table', () => {
+describe('serializeSpr - address table', () => {
   it('null sprite → address 0 in table', () => {
     const chunks = serializeSpr([null], 772)
     const table = chunks[1]!
@@ -122,9 +116,7 @@ describe('serializeSpr — address table', () => {
   })
 })
 
-// ─── sprite chunk layout ──────────────────────────────────────────────────────
-
-describe('serializeSpr — sprite chunk layout', () => {
+describe('serializeSpr - sprite chunk layout', () => {
   it('chunk starts with color key [0xFF, 0x00, 0xFF]', () => {
     const s = makeSprite([{ index: 0, r: 1, g: 2, b: 3 }])
     const chunks = serializeSpr([s], 772)
@@ -145,9 +137,7 @@ describe('serializeSpr — sprite chunk layout', () => {
   })
 })
 
-// ─── RLE encoding ─────────────────────────────────────────────────────────────
-
-describe('serializeSpr — RLE encoding', () => {
+describe('serializeSpr - RLE encoding', () => {
   it('pixel at position 0: run [0,0][1,1][r,g,b]', () => {
     const s = makeSprite([{ index: 0, r: 100, g: 150, b: 200 }])
     const chunks = serializeSpr([s], 772)
@@ -190,7 +180,7 @@ describe('serializeSpr — RLE encoding', () => {
     expect(chunk[16]).toBe(4) // r
   })
 
-  it('trailing transparent pixels are implicit — no trailing run', () => {
+  it('trailing transparent pixels are implicit - no trailing run', () => {
     const s = makeSprite([{ index: 500, r: 1, g: 2, b: 3 }])
     const chunks = serializeSpr([s], 772)
     const chunk = chunks[2]!
@@ -200,9 +190,7 @@ describe('serializeSpr — RLE encoding', () => {
   })
 })
 
-// ─── onSprite callback ────────────────────────────────────────────────────────
-
-describe('serializeSpr — onSprite callback', () => {
+describe('serializeSpr - onSprite callback', () => {
   it('called once per sprite (null or non-null)', () => {
     const s = makeSprite([{ index: 0, r: 1, g: 2, b: 3 }])
     const cb = vi.fn()
@@ -218,9 +206,7 @@ describe('serializeSpr — onSprite callback', () => {
   })
 })
 
-// ─── input duck-typing ────────────────────────────────────────────────────────
-
-describe('serializeSpr — SprWriteInput duck-typing', () => {
+describe('serializeSpr - SprWriteInput duck-typing', () => {
   it('SprFile satisfies SprWriteInput structurally (compile-time check)', () => {
     const _: SprWriteInput = {} as SprFile
     expect(_).toBeDefined()

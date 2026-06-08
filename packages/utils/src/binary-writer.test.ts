@@ -140,7 +140,7 @@ describe('createEscapedBinaryWriter', () => {
 
   it('raw writes (u8, u16) in escaped writer do not apply escape', () => {
     const w = createEscapedBinaryWriter()
-    w.u8(0xff) // raw — no escape
+    w.u8(0xff) // raw - no escape
     w.escU8(0xff) // escaped
     expect(w.finish()).toEqual(new Uint8Array([0xff, 0xfd, 0xff]))
   })
