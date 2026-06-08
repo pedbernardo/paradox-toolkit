@@ -1,0 +1,52 @@
+export const NODE_SPECIAL_BYTE = {
+  START: 0xfe,
+  END: 0xff,
+  ESCAPE: 0xfd,
+} as const;
+
+export const OTBM_NODE_TYPE = {
+  WORLD_NODE: 0x00,
+  MAP_DATA: 0x02,
+  TILE_AREA: 0x04,
+  TILE: 0x05,
+  ITEM: 0x06,
+  TOWNS: 0x0c,
+  TOWN: 0x0d,
+  HOUSETILE: 0x0e,
+  WAYPOINTS: 0x0f,
+  WAYPOINT: 0x10,
+} as const;
+
+export const OTBM_ATTRIBUTE = {
+  DESCRIPTION: 0x01,
+  TILE_FLAGS: 0x03,
+  ACTION_ID: 0x04,
+  UNIQUE_ID: 0x05,
+  TEXT: 0x06,
+  DESC: 0x07,
+  TELE_DEST: 0x08,
+  ITEM: 0x09,
+  DEPOT_ID: 0x0a,
+  RUNE_CHARGES: 0x0c,
+  HOUSE_DOOR: 0x0e,
+  COUNT: 0x0f,
+  DURATION: 0x10,
+  DECAY_STATE: 0x11,
+  WRITTEN_DATE: 0x12,
+  WRITTEN_BY: 0x13,
+  SLEEPER_GUID: 0x14,
+  SLEEP_START: 0x15,
+  CHARGES: 0x16,
+  ATTRIBUTE_MAP: 0x80,
+} as const;
+
+export const TILE_KEY_Y_STRIDE = 65536;
+export const TILE_KEY_Z_STRIDE = 4294967296;
+
+export const OTBM_TILE_FLAG = {
+  PROTECTION_ZONE: 0x01,
+  NO_PVP: 0x04,
+  NO_LOGOUT: 0x08,
+  PVP_ZONE: 0x10,
+  REFRESH: 0x20,
+} as const;
