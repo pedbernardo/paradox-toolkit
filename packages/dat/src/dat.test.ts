@@ -435,3 +435,266 @@ describe('Dat - strict mode', () => {
     expect(() => Dat(772, { strict: true }).load(buildTruncatedDat772())).toThrow()
   })
 })
+
+// Version 740: no patternZ, no extendedSprites. Layout has 6 fields (no patZ byte).
+function buildDat740(): Uint8Array {
+  const sig = DAT_SIGNATURES[740]!
+  // item 100: end-of-flags + 6-field layout + 1x u16 spriteId = 9 bytes
+  const ab = new ArrayBuffer(12 + 9)
+  const buf = new DataView(ab)
+  buf.setUint32(0, sig, true)
+  buf.setUint16(4, 100, true)
+  buf.setUint16(6, 0, true)
+  buf.setUint16(8, 0, true)
+  buf.setUint16(10, 0, true)
+  buf.setUint8(12, 0xff) // end-of-flags
+  buf.setUint8(13, 1) // width
+  buf.setUint8(14, 1) // height
+  buf.setUint8(15, 1) // layers
+  buf.setUint8(16, 1) // patternX
+  buf.setUint8(17, 1) // patternY
+  // no patternZ field (feature absent before v755)
+  buf.setUint8(18, 1) // frames
+  buf.setUint16(19, 42, true)
+  return new Uint8Array(ab)
+}
+
+// Version 772 with width=2, height=2 item: exercises the realSize branch.
+// Sprite count: 2×2×1×1×1×1×1 = 4 sprites × u16 = 8 bytes.
+function buildLargeLayoutDat772(): Uint8Array {
+  const sig = DAT_SIGNATURES[772]!
+  const ab = new ArrayBuffer(12 + 17)
+  const buf = new DataView(ab)
+  buf.setUint32(0, sig, true)
+  buf.setUint16(4, 100, true)
+  buf.setUint16(6, 0, true)
+  buf.setUint16(8, 0, true)
+  buf.setUint16(10, 0, true)
+  buf.setUint8(12, 0xff)
+  buf.setUint8(13, 2) // width = 2
+  buf.setUint8(14, 2) // height = 2
+  buf.setUint8(15, 64) // realSize = 64 (present because width > 1)
+  buf.setUint8(16, 1) // layers
+  buf.setUint8(17, 1) // patternX
+  buf.setUint8(18, 1) // patternY
+  buf.setUint8(19, 1) // patternZ
+  buf.setUint8(20, 1) // frames
+  buf.setUint16(21, 10, true)
+  buf.setUint16(23, 11, true)
+  buf.setUint16(25, 12, true)
+  buf.setUint16(27, 13, true)
+  return new Uint8Array(ab)
+}
+
+// Version 772 with 1 effect and 1 missile, no items or creatures.
+// itemsMaxCid=99 makes the items range (100..99) empty.
+function buildEffectsAndMissilesDat772(): Uint8Array {
+  const sig = DAT_SIGNATURES[772]!
+  // effect 1 + missile 1: each is 0xFF + 7-byte layout + u16 = 10 bytes
+  const ab = new ArrayBuffer(12 + 10 + 10)
+  const buf = new DataView(ab)
+  buf.setUint32(0, sig, true)
+  buf.setUint16(4, 99, true) // itemsMaxCid=99 → items range 100..99 = empty
+  buf.setUint16(6, 0, true)
+  buf.setUint16(8, 1, true) // effects = 1
+  buf.setUint16(10, 1, true) // missiles = 1
+  let off = 12
+  for (const spriteId of [55, 66]) {
+    buf.setUint8(off++, 0xff)
+    for (let i = 0; i < 7; i++) buf.setUint8(off++, 1) // width,height,layers,patX,patY,patZ,frames
+    buf.setUint16(off, spriteId, true)
+    off += 2
+  }
+  return new Uint8Array(ab)
+}
+
+// DAT v860 with WRITABLE, WRITABLE_ONCE, MINIMAP, LENS_HELP, CLOTH, USABLE flags.
+// Exercises the anonymous read lambdas in ADVANCED_RULES and write lambdas in WRITE_PAYLOADS.
+function buildFlagsDat860(): Uint8Array {
+  const sig = DAT_SIGNATURES[860]!
+  const flagMap = getDatFlags(860)
+  // 6 flags × (1 byte + 2 byte payload) + 1 end = 19 bytes; layout 7 bytes; sprite u16 = 2 bytes
+  const ab = new ArrayBuffer(12 + 19 + 7 + 2)
+  const buf = new DataView(ab)
+  let off = 0
+  buf.setUint32(off, sig, true)
+  off += 4
+  buf.setUint16(off, 100, true)
+  off += 2 // itemsMaxCid
+  buf.setUint16(off, 0, true)
+  off += 2
+  buf.setUint16(off, 0, true)
+  off += 2
+  buf.setUint16(off, 0, true)
+  off += 2
+  const flagPayloads: [string, number][] = [
+    ['WRITABLE', 100],
+    ['WRITABLE_ONCE', 50],
+    ['MINIMAP', 0xf00],
+    ['LENS_HELP', 5],
+    ['CLOTH', 7],
+    ['USABLE', 1]
+  ]
+  for (const [name, payload] of flagPayloads) {
+    buf.setUint8(off++, flagMap[name]!)
+    buf.setUint16(off, payload, true)
+    off += 2
+  }
+  buf.setUint8(off++, 0xff) // end-of-flags
+  for (let i = 0; i < 7; i++) buf.setUint8(off++, 1) // layout: all fields = 1
+  buf.setUint16(off, 100, true)
+  return new Uint8Array(ab)
+}
+
+describe('Dat - flag read/write paths (WRITABLE, MINIMAP, LENS_HELP, CLOTH, USABLE)', () => {
+  it('parses WRITABLE flag with length payload', () => {
+    expect(Dat(860).load(buildFlagsDat860()).get('items', 100)!.flags.writable).toEqual({
+      length: 100
+    })
+  })
+
+  it('parses WRITABLE_ONCE flag with length payload', () => {
+    expect(Dat(860).load(buildFlagsDat860()).get('items', 100)!.flags.writableOnce).toEqual({
+      length: 50
+    })
+  })
+
+  it('parses MINIMAP flag with color payload', () => {
+    expect(Dat(860).load(buildFlagsDat860()).get('items', 100)!.flags.minimap).toEqual({
+      color: 0xf00
+    })
+  })
+
+  it('parses LENS_HELP flag with value payload', () => {
+    expect(Dat(860).load(buildFlagsDat860()).get('items', 100)!.flags.lensHelp).toEqual({
+      value: 5
+    })
+  })
+
+  it('roundtrip 860: all single-value flags survive write/load', () => {
+    const original = Dat(860).load(buildFlagsDat860())
+    const roundtrip = Dat(860).load(Dat(860).write(original))
+    const flags = roundtrip.get('items', 100)!.flags
+    expect(flags.writable).toEqual({ length: 100 })
+    expect(flags.writableOnce).toEqual({ length: 50 })
+    expect(flags.minimap).toEqual({ color: 0xf00 })
+    expect(flags.lensHelp).toEqual({ value: 5 })
+    expect(flags.cloth).toEqual({ slot: 7 })
+    expect(flags.usable).toEqual({ value: 1 })
+  })
+})
+
+describe('Dat - effects and missiles', () => {
+  it('get("effects", 1) returns the effect thing', () => {
+    const file = Dat(772).load(buildEffectsAndMissilesDat772())
+    const effect = file.get('effects', 1)
+    expect(effect).toBeDefined()
+    expect(effect!.cid).toBe(1)
+    expect(effect!.group).toBe('effects')
+  })
+
+  it('get("missiles", 1) returns the missile thing', () => {
+    const file = Dat(772).load(buildEffectsAndMissilesDat772())
+    const missile = file.get('missiles', 1)
+    expect(missile).toBeDefined()
+    expect(missile!.cid).toBe(1)
+    expect(missile!.group).toBe('missiles')
+  })
+})
+
+describe('Dat - large layout (realSize)', () => {
+  it('item with width=2 height=2 reads realSize from buffer', () => {
+    const layout = Dat(772).load(buildLargeLayoutDat772()).get('items', 100)!.layout
+    expect(layout.width).toBe(2)
+    expect(layout.height).toBe(2)
+    expect(layout.realSize).toBe(64)
+  })
+
+  it('spriteIds length equals width × height', () => {
+    expect(Dat(772).load(buildLargeLayoutDat772()).get('items', 100)!.spriteIds).toHaveLength(4)
+  })
+})
+
+describe('Dat - non-patternZ version (v740)', () => {
+  it('patternZ defaults to 1 without consuming a buffer byte', () => {
+    expect(Dat(740).load(buildDat740()).get('items', 100)!.layout.patternZ).toBe(1)
+  })
+})
+
+describe('Dat - write()', () => {
+  it('throws ParseError when constructor version mismatches data.version', () => {
+    const file = Dat(772).load(buildMinimalDat772())
+    expect(() => Dat(772).write({ ...file, version: 960 })).toThrow(ParseError)
+  })
+
+  it('Dat() uses data.version when no version provided in constructor', () => {
+    const file = Dat(772).load(buildMinimalDat772())
+    expect(() => Dat().write(file)).not.toThrow()
+  })
+
+  it('roundtrip 772: item spriteIds survive write/load', () => {
+    const original = Dat(772).load(buildMinimalDat772())
+    const roundtrip = Dat(772).load(Dat(772).write(original))
+    expect(roundtrip.get('items', 100)!.spriteIds).toEqual([42])
+  })
+
+  it('roundtrip 960: MARKET flag survives write/load', () => {
+    const original = Dat(960).load(buildMarketDat960())
+    const roundtrip = Dat(960).load(Dat(960).write(original))
+    expect(roundtrip.get('items', 100)!.flags.market?.name).toBe('Gold Coin')
+  })
+
+  it('roundtrip 1098: frame groups survive write/load', () => {
+    const original = Dat(1098).load(buildFrameGroupsDat1098())
+    const roundtrip = Dat(1098).load(Dat(1098).write(original))
+    expect(roundtrip.get('creatures', 1)!.frameGroups).toHaveLength(2)
+  })
+
+  it('write() fallback: creature without frameGroups is serialized as a single idle group', () => {
+    const file = Dat(1098).load(buildFrameGroupsDat1098())
+    const creature = file.get('creatures', 1)!
+    // Empty frameGroups triggers the fallback path (uses root layout/spriteIds)
+    const roundtrip = Dat(1098).load(
+      Dat(1098).write({ ...file, things: [{ ...creature, frameGroups: [] }] })
+    )
+    expect(roundtrip.get('creatures', 1)!.frameGroups).toHaveLength(1)
+    expect(roundtrip.get('creatures', 1)!.frameGroups![0]!.groupType).toBe(0)
+  })
+
+  it('write() emits zero animation placeholder when frames > 1 but animation field is absent', () => {
+    const file = Dat(1098).load(buildAnimationDat1098())
+    const item = file.get('items', 100)!
+    const { animation: _animation, ...layoutNoAnim } = item.layout
+    const roundtrip = Dat(1098).load(
+      Dat(1098).write({ ...file, things: [{ ...item, layout: layoutNoAnim }] })
+    )
+    const anim = roundtrip.get('items', 100)!.layout.animation!
+    expect(anim.async).toBe(false)
+    expect(anim.loopCount).toBe(0)
+    expect(anim.startPhase).toBe(0)
+  })
+
+  it('roundtrip 772: large layout with realSize survives write/load', () => {
+    const original = Dat(772).load(buildLargeLayoutDat772())
+    const roundtrip = Dat(772).load(Dat(772).write(original))
+    const layout = roundtrip.get('items', 100)!.layout
+    expect(layout.width).toBe(2)
+    expect(layout.realSize).toBe(64)
+    expect(roundtrip.get('items', 100)!.spriteIds).toHaveLength(4)
+  })
+
+  it('roundtrip 740: non-patternZ version survives write/load', () => {
+    const original = Dat(740).load(buildDat740())
+    const roundtrip = Dat(740).load(Dat(740).write(original))
+    expect(roundtrip.version).toBe(740)
+    expect(roundtrip.get('items', 100)!.layout.patternZ).toBe(1)
+    expect(roundtrip.get('items', 100)!.spriteIds).toEqual([42])
+  })
+
+  it('roundtrip 772: effects and missiles survive write/load', () => {
+    const original = Dat(772).load(buildEffectsAndMissilesDat772())
+    const roundtrip = Dat(772).load(Dat(772).write(original))
+    expect(roundtrip.get('effects', 1)!.cid).toBe(1)
+    expect(roundtrip.get('missiles', 1)!.cid).toBe(1)
+  })
+})
