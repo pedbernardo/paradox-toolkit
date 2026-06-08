@@ -8,6 +8,8 @@ import type { ContentDefinitions } from './types.js'
 const SOURCES = resolve(import.meta.dirname, '../vendor')
 const DAT_PATH = resolve(SOURCES, '772.dat')
 const OTB_PATH = resolve(SOURCES, '772.otb')
+const hasVendorDat = existsSync(DAT_PATH)
+const hasVendorOtb = existsSync(OTB_PATH)
 
 const stubContent: ContentDefinitions = {
   meta: {
@@ -30,7 +32,7 @@ describe('loadInputs - missing files', () => {
     if (!result.ok) expect(result.error).toMatch(/DAT file not found/)
   })
 
-  it('returns error when OTB file does not exist', () => {
+  it.skipIf(!hasVendorDat)('returns error when OTB file does not exist', () => {
     const result = loadInputs(DAT_PATH, '/nonexistent/file.otb', 772)
     expect(result.ok).toBe(false)
     if (!result.ok) expect(result.error).toMatch(/OTB file not found/)
@@ -44,7 +46,7 @@ describe('loadInputs - missing files', () => {
   })
 })
 
-describe('loadInputs - parse error', () => {
+describe.skipIf(!hasVendorDat)('loadInputs - parse error', () => {
   it('returns error when OTB file exists but fails to parse', () => {
     const badOtb = resolve(tmpdir(), `thinger-test-bad-${Date.now()}.otb`)
     writeFileSync(badOtb, Buffer.from([0x00, 0x01, 0x02, 0x03]))
@@ -54,7 +56,7 @@ describe('loadInputs - parse error', () => {
   })
 })
 
-describe('loadInputs - valid files', () => {
+describe.skipIf(!hasVendorDat || !hasVendorOtb)('loadInputs - valid files', () => {
   it('returns ok with parsed dat and otb', () => {
     const result = loadInputs(DAT_PATH, OTB_PATH, 772)
     expect(result.ok).toBe(true)
