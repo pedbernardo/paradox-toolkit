@@ -9,6 +9,7 @@ import { loadSpr, writeSpritesheet } from './spriter-io.js'
 
 const FIXTURE_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '../fixtures')
 const SAMPLE_SPR = join(FIXTURE_DIR, 'sample.spr')
+const hasSampleSpr = existsSync(SAMPLE_SPR)
 
 let tmpDir: string
 
@@ -21,7 +22,7 @@ afterEach(() => {
 })
 
 describe('loadSpr', () => {
-  it('returns ok=true with spr.count=10 for the fixture', () => {
+  it.skipIf(!hasSampleSpr)('returns ok=true with spr.count=10 for the fixture', () => {
     const result = loadSpr(SAMPLE_SPR, 772)
     expect(result.ok).toBe(true)
     if (result.ok) expect(result.spr.count).toBe(10)
@@ -42,7 +43,7 @@ describe('loadSpr', () => {
   })
 })
 
-describe('writeSpritesheet', () => {
+describe.skipIf(!hasSampleSpr)('writeSpritesheet', () => {
   async function buildOutput(version = 772) {
     const loaded = loadSpr(SAMPLE_SPR, version)
     if (!loaded.ok) throw new Error(loaded.error)
