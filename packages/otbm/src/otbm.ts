@@ -67,6 +67,7 @@ export function Otbm(opts?: OtbmOptions): {
 
   function write(data: OtbmWriteInput, writeOpts?: OtbmWriteOpts): Uint8Array {
     if (data.header.version !== 2) {
+      // oxlint-disable-next-line no-console
       console.warn(
         `OTBM write: header.version is ${data.header.version}, expected 2 - serializing as v2`
       )
@@ -98,6 +99,7 @@ export function Otbm(opts?: OtbmOptions): {
     writeOpts?: OtbmWriteOpts
   ): AsyncGenerator<Uint8Array> {
     if (data.header.version !== 2) {
+      // oxlint-disable-next-line no-console
       console.warn(
         `OTBM write: header.version is ${data.header.version}, expected 2 - serializing as v2`
       )
