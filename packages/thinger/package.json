@@ -1,0 +1,45 @@
+{
+  "name": "@paradox/thinger",
+  "version": "0.1.0",
+  "private": false,
+  "bin": {
+    "thinger": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "publishConfig": {
+    "name": "@paradoxlab/thinger",
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:cov": "vitest run --coverage",
+    "generate-name-map": "tsx scripts/generate-name-map.ts",
+    "generate:772": "tsx src/cli.ts generate --dat vendor/772.dat --otb vendor/772.otb --version 772 --out tmp --pretty"
+  },
+  "dependencies": {
+    "@paradox/dat": "workspace:*",
+    "@paradox/otb": "workspace:*",
+    "@sinclair/typebox": "catalog:",
+    "commander": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "tsup": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

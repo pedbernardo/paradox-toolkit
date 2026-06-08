@@ -1,0 +1,45 @@
+{
+  "name": "@paradox/spriter",
+  "version": "0.1.0",
+  "private": false,
+  "bin": {
+    "spriter": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "publishConfig": {
+    "name": "@paradoxlab/spriter",
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:cov": "vitest run --coverage",
+    "generate-fixture": "tsx scripts/generate-fixture.ts",
+    "generate:772": "tsx src/cli.ts generate --spr vendor/spr-772.spr --version 772 --out tmp"
+  },
+  "dependencies": {
+    "@paradox/spr": "workspace:*",
+    "@sinclair/typebox": "catalog:",
+    "commander": "catalog:",
+    "sharp": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "tsup": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
