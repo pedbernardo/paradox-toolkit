@@ -1,0 +1,21 @@
+pre-commit:
+  commands:
+    staged:
+      run: pnpm lint-staged
+    lint:
+      run: pnpm lint
+    typecheck:
+      run: pnpm typecheck
+
+pre-push:
+  commands:
+    typecheck:
+      run: pnpm typecheck
+    knip:
+      run: pnpm knip
+    circular:
+      run: pnpm circular
+    test:
+      run: pnpm test:run
+    commitlint:
+      run: pnpm commitlint --from HEAD~1 --to HEAD

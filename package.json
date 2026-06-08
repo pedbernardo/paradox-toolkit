@@ -1,0 +1,45 @@
+{
+  "name": "paradox-toolkit",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "coverage": "pnpm -r --if-present test:cov",
+    "lint": "oxlint .",
+    "format": "oxfmt .",
+    "check": "oxfmt --check . && oxlint .",
+    "knip": "knip",
+    "circular": "depcruise --config .dependency-cruiser.json \"packages/*/src/**/*.ts\"",
+    "changeset": "changeset",
+    "preinstall": "npx only-allow pnpm",
+    "prepare": "lefthook install"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "catalog:",
+    "@changesets/cli": "catalog:",
+    "@commitlint/cli": "catalog:",
+    "@commitlint/config-conventional": "catalog:",
+    "dependency-cruiser": "catalog:",
+    "knip": "catalog:",
+    "lefthook": "catalog:",
+    "lint-staged": "catalog:",
+    "oxfmt": "catalog:",
+    "oxlint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "oxfmt",
+      "oxlint --fix"
+    ],
+    "*.json": "oxfmt"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "packageManager": "pnpm@10.33.2"
+}

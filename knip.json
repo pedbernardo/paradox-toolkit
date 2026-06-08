@@ -1,0 +1,13 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "ignoreBinaries": ["only-allow"],
+  "ignoreExportsUsedInFile": true,
+  "workspaces": {
+    "packages/thinger": {
+      "entry": ["src/index.ts", "src/cli.ts"]
+    },
+    "packages/spriter": {
+      "entry": ["src/index.ts", "src/cli.ts"]
+    }
+  }
+}

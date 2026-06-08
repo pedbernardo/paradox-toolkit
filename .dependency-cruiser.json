@@ -1,0 +1,33 @@
+{
+  "$schema": "node_modules/dependency-cruiser/schema/configuration.schema.json",
+  "forbidden": [
+    {
+      "name": "no-circular-runtime",
+      "comment": "Runtime circular imports are forbidden. Type-only cycles (import type) are not included in the graph.",
+      "severity": "error",
+      "from": {},
+      "to": {
+        "circular": true
+      }
+    },
+    {
+      "name": "no-reader-cross-deps",
+      "comment": "Readers (dat, spr, otb, otbm) are fully independent — they may only depend on utils, never on each other.",
+      "severity": "error",
+      "from": { "path": "^packages/(dat|spr|otb|otbm)" },
+      "to": { "path": "^packages/(dat|spr|otb|otbm)" }
+    }
+  ],
+  "options": {
+    "doNotFollow": {
+      "path": "node_modules"
+    },
+    "exclude": {
+      "path": "(node_modules|dist)"
+    },
+    "enhancedResolveOptions": {
+      "extensions": [".ts", ".js"],
+      "conditionNames": ["import", "require", "node", "default"]
+    }
+  }
+}

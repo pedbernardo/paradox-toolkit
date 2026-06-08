@@ -1,0 +1,30 @@
+# General
+node_modules
+dist
+.DS_Store
+coverage
+*.cpuprofile
+*.local
+*.log
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Claude Code local settings
+.claude/settings.local.json
+.claude/projects/
+
+# Proprietary Tibia binaries — never commit
+*.dat
+*.spr
+
+# OTServer community files — large files ignored, small fixtures allowed
+*.otb
+!*.fixture.otb
+*.otbm
+!*.fixture.otbm
+
+# Temporary files
+tmp/
