@@ -3,9 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@paradoxlab/dat.svg)](https://www.npmjs.com/package/@paradoxlab/dat)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](../../LICENSE)
 
-Parser and writer for Tibia's `.dat` binary format. Reads and writes visual/layout definitions for items, creatures, effects, and missiles. Supports Tibia client versions 7.40 - 12.x.
-
-> Note: `.dat` files are proprietary Tibia client assets. Do not redistribute them.
+Parser and writer for `.dat` binary format. Reads and writes visual/layout definitions for items, creatures, effects, and missiles.
 
 ## Installation
 
@@ -94,7 +92,6 @@ Every entry exposes the standard layout properties plus a `flags` object:
 ## Format Notes
 
 - The signature at offset 0 encodes the client version as a packed integer. Auto-detection reads it; explicit version bypasses the check.
-- A [known bug](https://github.com/slavidodo/tibia-dat-parser/issues/1) in some OTServer tools wrote the items section using an `ArrayBuffer` offset that caused silent truncation. This parser is unaffected — it reads the full block.
 - Flags are split into "simple" (single-byte flags at fixed bit positions) and "complex" (TLV attributes like `minimapColor`, `tradeAs`). Both are decoded into a flat `flags` object.
 - Versions before 7.55 do not have `patternZ`; before 9.6 do not have frame durations. `getVersionFeatures()` from `@paradoxlab/utils` exposes these flags if you need them.
 

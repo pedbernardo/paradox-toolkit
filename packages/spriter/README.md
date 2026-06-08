@@ -9,7 +9,7 @@ Build tool that converts a parsed `.spr` file into a packed 4096×4096 spriteshe
 
 ```bash
 npm install @paradoxlab/spriter
-# sharp is a required dependency — native bindings are compiled on install
+# sharp is a required dependency - native bindings are compiled on install
 ```
 
 ## How to Use
@@ -76,14 +76,13 @@ type SpritesheetOutput = {
 }
 ```
 
-Sprites are laid out left-to-right, top-to-bottom, 32 pixels per cell. The 4096×4096 canvas fits 128×128 = 16,384 sprites — enough for any known Tibia version.
+Sprites are laid out left-to-right, top-to-bottom, 32 pixels per cell. The 4096×4096 canvas fits 128×128 = 16,384 sprites.
 
 ## Format Notes
 
 - Sprite IDs in `positions` match the IDs from `SprFile.get()` — 1-indexed.
 - Empty sprites (null offset in the `.spr` offset table) are still allocated a cell in the atlas; their pixels are all-transparent.
 - sharp is used for maximum compositing performance and libvips-backed PNG encoding. If the native bindings fail to build, check the [sharp installation guide](https://sharp.pixelplumbing.com/install).
-- The spritesheet is always exactly 4096×4096 regardless of how many sprites are in the file. Unused cells are transparent.
 
 ---
 

@@ -85,7 +85,7 @@ Extends `createBinaryWriter` with escape-sequence-aware writes (OTB / OTBM forma
 
 ### `getVersionFeatures(version: number)`
 
-Returns feature flags for a given Tibia client version.
+Returns feature flags for a given client version.
 
 ```ts
 import { getVersionFeatures } from '@paradoxlab/utils'

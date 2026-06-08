@@ -1,10 +1,10 @@
-import { defineConfig } from "vitest/config";
+import { defineConfig } from 'vitest/config'
 
-process.env["NODE_OPTIONS"] = "--max-old-space-size=8192";
+process.env['NODE_OPTIONS'] = '--max-old-space-size=8192'
 
 export default defineConfig({
   test: {
-    include: ["tests/**/*.local.ts"],
-    pool: "forks",
-  },
-});
+    include: ['tests/**/*.local.ts'],
+    pool: 'forks'
+  }
+})

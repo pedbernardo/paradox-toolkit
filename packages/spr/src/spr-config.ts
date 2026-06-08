@@ -10,5 +10,5 @@ export const SPR_SIGNATURES: Readonly<Record<number, number>> = {
   870: 0x4cfd078a,
   960: 0x4ffa74f9,
   980: 0x50c70753,
-  1098: 0x57bbd603,
-};
+  1098: 0x57bbd603
+}

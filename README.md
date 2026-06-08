@@ -1,9 +1,6 @@
 <h1 align="center">
-  <img
-    src="./img/badge.png#gh-light-mode-only"
-    alt="Paradox Toolkit logo"
-  >
-
+  <img src="./img/paradox-toolkit.png" alt="Paradox Toolkit logo">
+  <p>Paradox Toolkit</p>
   <p align="center">
     <a href="https://github.com/pedbernardo/paradox-toolkit/actions/workflows/ci.yml">
       <img src="https://img.shields.io/github/actions/workflow/status/pedbernardo/paradox-toolkit/ci.yml?branch=main&label=CI" alt="CI">
@@ -11,12 +8,19 @@
     <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License">
     <img src="https://img.shields.io/badge/node-%3E%3D22-brightgreen" alt="Node >=22">
   </p>
-
-  <p align="center">
-    TypeScript parsers, writers, and build tools for the OTServer ecosystem.<br>
-    Read, modify, and write <code>.dat</code>, <code>.spr</code>, <code>.otb</code>, and <code>.otbm</code> files with a clean, typed API.
-  </p>
 </h1>
+
+<p align="center">
+  TypeScript parsers, writers, and build tools for the OTServer ecosystem.<br>
+  Read, modify, and write <code>.dat</code>, <code>.spr</code>, <code>.otb</code>, and <code>.otbm</code> files with a clean, typed API.
+</p>
+
+<p align="center">
+  <a href="#Packages">Packages</a> |
+  <a href="#Quick-Start">Quick Start</a> |
+  <a href="#Installation">Installation</a> |
+  <a href="#Background">Background</a>
+</p>
 
 <br>
 
@@ -68,13 +72,13 @@ pnpm add @paradoxlab/dat @paradoxlab/otb
 
 The **OTServer** ecosystem uses a set of binary formats inherited from the original client and servers like TFS (The Forgotten Server):
 
-- **`.dat`** — Visual and layout definitions for every game entity (items, creatures, effects, missiles). One entry per client ID.
-- **`.spr`** — Sprite data: 32×32 RGBA pixels, RLE-compressed, indexed by sprite ID.
-- **`.otb`** — OTServer item metadata: server IDs, flags, and attributes like name and weight.
-- **`.otbm`** — Map format: a binary tree of tile areas, towns, and waypoints.
+- **`.dat`** - Visual and layout definitions for every game entity (items, creatures, effects, missiles). One entry per client ID.
+- **`.spr`** - Sprite data: 32×32 RGBA pixels, RLE-compressed, indexed by sprite ID.
+- **`.otb`** - OTServer item metadata: server IDs, flags, and attributes like name and weight.
+- **`.otbm`** - Map format: a binary tree of tile areas, towns, and waypoints.
 
 paradox-toolkit provides full read and write support for all four formats, plus two build tools (`thinger`, `spriter`) that convert them into JSON and PNG artifacts suitable for game servers and web tooling.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+**MIT** - see [LICENSE](LICENSE).

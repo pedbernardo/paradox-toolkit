@@ -2,6 +2,17 @@
   "name": "@paradox/spriter",
   "version": "0.1.0",
   "private": false,
+  "description": "A TypeScript API and CLI tool for converting `.spr` to sprithesheet PNG and JSON metadata.",
+  "keywords": [
+    "OTServer",
+    "binary",
+    "parser",
+    "spr",
+    "spritesheet",
+    "toolkit"
+  ],
+  "license": "MIT",
+  "author": "Pedro Bernardo <pedrovbernardo@gmail.com>",
   "bin": {
     "spriter": "./dist/cli.js"
   },

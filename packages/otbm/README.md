@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@paradoxlab/otbm.svg)](https://www.npmjs.com/package/@paradoxlab/otbm)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](../../LICENSE)
 
-Parser and writer for OTServer's `.otbm` binary map format. Reads tile areas, towns, waypoints, and map metadata from TFS-compatible map files.
+Parser and writer for OTServers `.otbm` binary map format. Reads tile areas, towns, waypoints, and map metadata from TFS-compatible map files.
 
 ## Installation
 
@@ -22,7 +22,7 @@ const file = Otbm().load(readFileSync('world.otbm'))
 
 // Access header
 const { version, width, height, description } = file.header
-console.log(`${width}x${height} map — ${description}`)
+console.log(`${width}x${height} map - ${description}`)
 
 // Look up a tile
 const tile = file.getTile(100, 200, 7)
@@ -98,7 +98,6 @@ Validate the root node marker and header version without parsing areas.
 
 - Like OTB, OTBM uses an escaped binary tree: node boundaries are `0xFE` (start) and `0xFF` (end); `0xFD` escapes reserved bytes within data.
 - Tile positions are stored relative to each area's base position (the area header stores the base `x, y, z`, individual tiles store `dx, dy` offsets). `getTile()` reconstructs absolute positions transparently.
-- A [known bug](https://github.com/otland/forgottenserver/issues/3842) in some parsers decoded tile positions as a plain array `[x, y, z]` instead of an object `{ x, y, z }`. This parser always returns the object form.
 - Map versions differ in which node types and attribute IDs are supported. The parser reads the version from the root header and adjusts accordingly.
 
 ---

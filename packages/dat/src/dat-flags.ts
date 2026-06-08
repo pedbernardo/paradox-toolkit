@@ -1,6 +1,6 @@
-import { ParseError } from "@paradox/utils";
+import { ParseError } from '@paradox/utils'
 
-type FlagMap = Record<string, number>;
+type FlagMap = Record<string, number>
 
 const DAT_FLAGS_710: FlagMap = {
   GROUND: 0,
@@ -32,14 +32,14 @@ const DAT_FLAGS_710: FlagMap = {
   HORIZONTAL: 27,
   ALWAYS_ANIMATE: 28,
   LENS_HELP: 29,
-  END_OF_FLAGS: 255,
-};
+  END_OF_FLAGS: 255
+}
 
 const DAT_FLAGS_740_750: FlagMap = {
   ...DAT_FLAGS_710,
   BLOCK_PATHFINDER: 14, // inserted at byte 14; PICKUPABLE shifts to 15
-  PICKUPABLE: 15,
-};
+  PICKUPABLE: 15
+}
 
 const DAT_FLAGS_755_772: FlagMap = {
   ...DAT_FLAGS_740_750,
@@ -72,8 +72,8 @@ const DAT_FLAGS_755_772: FlagMap = {
   ALWAYS_ANIMATE: 27,
   MINIMAP: 28,
   LENS_HELP: 29,
-  FULL_GROUND: 30,
-};
+  FULL_GROUND: 30
+}
 
 const DAT_FLAGS_860_980: FlagMap = {
   ...DAT_FLAGS_755_772,
@@ -85,34 +85,34 @@ const DAT_FLAGS_860_980: FlagMap = {
   WRAPPABLE: 35,
   UNWRAPPABLE: 36,
   TOP_EFFECT: 37,
-  FLOOR_CHANGE: 252,
-};
+  FLOOR_CHANGE: 252
+}
 
 function incrementFlags(flags: FlagMap, increment: number, minimum: number): FlagMap {
-  const result: FlagMap = {};
+  const result: FlagMap = {}
   for (const [key, value] of Object.entries(flags)) {
-    result[key] = value <= minimum ? value : value + increment;
+    result[key] = value <= minimum ? value : value + increment
   }
-  return result;
+  return result
 }
 
 const DAT_FLAGS_1000_PLUS: FlagMap = {
   ...incrementFlags(DAT_FLAGS_860_980, 1, 15),
-  NO_MOVE_ANIMATION: 16,
-};
+  NO_MOVE_ANIMATION: 16
+}
 
-type VersionGroup = { flags: FlagMap; versions: readonly number[] };
+type VersionGroup = { flags: FlagMap; versions: readonly number[] }
 
 const VERSION_GROUPS: readonly VersionGroup[] = [
   { flags: DAT_FLAGS_710, versions: [710] },
   { flags: DAT_FLAGS_740_750, versions: [740, 750] },
   { flags: DAT_FLAGS_755_772, versions: [755, 760, 770, 772] },
   { flags: DAT_FLAGS_860_980, versions: [860, 870, 960, 980] },
-  { flags: DAT_FLAGS_1000_PLUS, versions: [1098] },
-];
+  { flags: DAT_FLAGS_1000_PLUS, versions: [1098] }
+]
 
 export function getDatFlags(version: number): FlagMap {
-  const group = VERSION_GROUPS.find((g) => g.versions.includes(version));
-  if (!group) throw new ParseError(`No flag map for version ${version}`);
-  return group.flags;
+  const group = VERSION_GROUPS.find((g) => g.versions.includes(version))
+  if (!group) throw new ParseError(`No flag map for version ${version}`)
+  return group.flags
 }

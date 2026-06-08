@@ -1,4 +1,4 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { Type, type Static } from '@sinclair/typebox'
 
 /**
  * Semantic version of the positions.json schema produced by @paradox/spriter.
@@ -11,22 +11,22 @@ import { Type, type Static } from "@sinclair/typebox";
  *
  * Consumers should reject files whose schema version they don't recognize.
  */
-export const SPRITESHEET_SCHEMA_VERSION = "1.0.0";
+export const SPRITESHEET_SCHEMA_VERSION = '1.0.0'
 
 export type SpritesheetMeta = {
-  schema: string;
-  version: number;
-  spr: string;
-  width: number;
-  height: number;
-  sprites: number;
-};
+  schema: string
+  version: number
+  spr: string
+  width: number
+  height: number
+  sprites: number
+}
 
 export type SpritesheetOutput = {
-  meta: SpritesheetMeta;
-  png: Buffer;
-  positions: Map<number, { x: number; y: number }>;
-};
+  meta: SpritesheetMeta
+  png: Buffer
+  positions: Map<number, { x: number; y: number }>
+}
 
 const SpritesheetMetaSchema = Type.Object({
   schema: Type.String(),
@@ -34,12 +34,12 @@ const SpritesheetMetaSchema = Type.Object({
   spr: Type.String(),
   width: Type.Number(),
   height: Type.Number(),
-  sprites: Type.Number(),
-});
+  sprites: Type.Number()
+})
 
 export const SpritesheetJsonSchema = Type.Object({
   meta: SpritesheetMetaSchema,
-  positions: Type.Record(Type.String(), Type.Object({ x: Type.Number(), y: Type.Number() })),
-});
+  positions: Type.Record(Type.String(), Type.Object({ x: Type.Number(), y: Type.Number() }))
+})
 
-export type SpritesheetJson = Static<typeof SpritesheetJsonSchema>;
+export type SpritesheetJson = Static<typeof SpritesheetJsonSchema>

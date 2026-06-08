@@ -1,5 +1,5 @@
-import type { EscapedBinaryReader } from "@paradox/utils";
-import type { OtbItem } from "./types.js";
+import type { EscapedBinaryReader } from '@paradox/utils'
+import type { OtbItem } from './types.js'
 
 export const ITEM_ATTRIBUTE = {
   SERVERID: 16,
@@ -31,91 +31,91 @@ export const ITEM_ATTRIBUTE = {
   LIGHT2: 42,
   TOPORDER: 43,
   WAREID: 45,
-  CLASSIFICATION: 46,
-} as const;
+  CLASSIFICATION: 46
+} as const
 
-type HandlerProps = { item: OtbItem; reader: EscapedBinaryReader; length: number };
+type HandlerProps = { item: OtbItem; reader: EscapedBinaryReader; length: number }
 
 export const ATTRIBUTE_HANDLERS: Record<number, (props: HandlerProps) => void> = {
   [ITEM_ATTRIBUTE.SERVERID]: ({ item, reader }) => {
-    item.sid = reader.escU16();
+    item.sid = reader.escU16()
   },
 
   [ITEM_ATTRIBUTE.CLIENT_ID]: ({ item, reader }) => {
-    item.cid = reader.escU16();
+    item.cid = reader.escU16()
   },
 
   [ITEM_ATTRIBUTE.NAME]: ({ item, reader, length }) => {
-    item.attributes.name = readEscStr(reader, length);
+    item.attributes.name = readEscStr(reader, length)
   },
 
   [ITEM_ATTRIBUTE.DESCRIPTION]: ({ item, reader, length }) => {
-    item.attributes.description = readEscStr(reader, length);
+    item.attributes.description = readEscStr(reader, length)
   },
 
   [ITEM_ATTRIBUTE.SPEED]: ({ item, reader }) => {
-    item.attributes.speed = reader.escU16();
+    item.attributes.speed = reader.escU16()
   },
 
   [ITEM_ATTRIBUTE.SPRITEHASH]: ({ item, reader, length }) => {
-    item.attributes.spriteHash = reader.escBytes(length);
+    item.attributes.spriteHash = reader.escBytes(length)
   },
 
   [ITEM_ATTRIBUTE.MINIMAPCOLOR]: ({ item, reader }) => {
-    item.attributes.minimapColor = reader.escU16();
+    item.attributes.minimapColor = reader.escU16()
   },
 
   [ITEM_ATTRIBUTE.MAXITEMS]: ({ item, reader }) => {
-    item.attributes.maxItems = reader.escU16();
+    item.attributes.maxItems = reader.escU16()
   },
 
   [ITEM_ATTRIBUTE.WEIGHT]: ({ item, reader }) => {
-    item.attributes.weight = reader.escU64();
+    item.attributes.weight = reader.escU64()
   },
 
   [ITEM_ATTRIBUTE.TOPORDER]: ({ item, reader }) => {
-    item.attributes.alwaysOnTopOrder = reader.escU8();
+    item.attributes.alwaysOnTopOrder = reader.escU8()
   },
 
   [ITEM_ATTRIBUTE.ROTATETO]: ({ item, reader }) => {
-    item.attributes.rotateTo = reader.escU16();
+    item.attributes.rotateTo = reader.escU16()
   },
 
   [ITEM_ATTRIBUTE.MAX_WRITE_LENGTH]: ({ item, reader }) => {
-    item.attributes.maxWriteLength = reader.escU16();
+    item.attributes.maxWriteLength = reader.escU16()
   },
 
   [ITEM_ATTRIBUTE.MAX_READ_LENGTH]: ({ item, reader }) => {
-    item.attributes.maxReadLength = reader.escU16();
+    item.attributes.maxReadLength = reader.escU16()
   },
 
   [ITEM_ATTRIBUTE.LIGHT]: ({ item, reader }) => {
-    item.attributes.lightLevel = reader.escU16();
-    item.attributes.lightColor = reader.escU16();
+    item.attributes.lightLevel = reader.escU16()
+    item.attributes.lightColor = reader.escU16()
   },
 
   [ITEM_ATTRIBUTE.LIGHT2]: ({ item, reader }) => {
-    item.attributes.lightLevel = reader.escU16();
-    item.attributes.lightColor = reader.escU16();
+    item.attributes.lightLevel = reader.escU16()
+    item.attributes.lightColor = reader.escU16()
   },
 
   [ITEM_ATTRIBUTE.WAREID]: ({ item, reader }) => {
-    item.attributes.wareId = reader.escU16();
+    item.attributes.wareId = reader.escU16()
   },
 
   [ITEM_ATTRIBUTE.CLASSIFICATION]: ({ item, reader }) => {
-    item.attributes.classification = reader.escU8();
-  },
-};
+    item.attributes.classification = reader.escU8()
+  }
+}
 
 function readEscStr(reader: EscapedBinaryReader, length: number): string {
-  return new TextDecoder("latin1").decode(reader.escBytes(length));
+  return new TextDecoder('latin1').decode(reader.escBytes(length))
 }
 
 export function encodeStr(s: string): Uint8Array {
-  const result = new Uint8Array(s.length);
+  const result = new Uint8Array(s.length)
   for (let i = 0; i < s.length; i++) {
-    result[i] = s.charCodeAt(i) & 0xff;
+    result[i] = s.charCodeAt(i) & 0xff
   }
-  return result;
+  return result
 }

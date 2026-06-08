@@ -1,22 +1,22 @@
-import type { Thing, ThingFlags } from "@paradox/dat";
-import type { OtbItem } from "@paradox/otb";
-import type { ItemContentDef, StackOrder, VisualOnlyDef } from "./types.js";
+import type { Thing, ThingFlags } from '@paradox/dat'
+import type { OtbItem } from '@paradox/otb'
+import type { ItemContentDef, StackOrder, VisualOnlyDef } from './types.js'
 
 function deriveStackOrder(flags: ThingFlags): StackOrder {
-  if (flags.ground) return "ground";
-  if (flags.groundBorder) return "border";
-  if (flags.onBottom) return "bottom";
-  if (flags.onTop) return "top";
-  return "regular";
+  if (flags.ground) return 'ground'
+  if (flags.groundBorder) return 'border'
+  if (flags.onBottom) return 'bottom'
+  if (flags.onTop) return 'top'
+  return 'regular'
 }
 
 export function toItem(
   thing: Thing,
   otb: OtbItem | undefined,
-  nameMap: Record<string, string>,
+  nameMap: Record<string, string>
 ): ItemContentDef {
-  const dat = thing.flags;
-  const name = otb?.attributes.name || nameMap[String(thing.cid)] || "";
+  const dat = thing.flags
+  const name = otb?.attributes.name || nameMap[String(thing.cid)] || ''
 
   return {
     id: thing.cid,
@@ -64,9 +64,9 @@ export function toItem(
       weight: otb?.attributes.weight ?? 0,
       maxItems: otb?.attributes.maxItems ?? 0,
       maxWriteLength: otb?.attributes.maxWriteLength ?? 0,
-      description: otb?.attributes.description ?? "",
+      description: otb?.attributes.description ?? '',
       minimapColor: otb?.attributes.minimapColor ?? dat.minimap?.color ?? null,
-      lensHelp: dat.lensHelp?.value ?? null,
+      lensHelp: dat.lensHelp?.value ?? null
     },
     visual: {
       spriteIds: thing.spriteIds,
@@ -79,19 +79,19 @@ export function toItem(
       alwaysAnimate: dat.alwaysAnimate === true,
       dontHide: dat.dontHide === true,
       translucent: dat.translucent === true,
-      noMoveAnimation: dat.noMoveAnimation === true,
-    },
-  };
+      noMoveAnimation: dat.noMoveAnimation === true
+    }
+  }
 }
 
 export function toVisualOnly(thing: Thing): VisualOnlyDef {
-  const dat = thing.flags;
+  const dat = thing.flags
   return {
     id: thing.cid,
     visual: {
       spriteIds: thing.spriteIds,
       layout: thing.layout,
-      light: dat.lightInfo ? { level: dat.lightInfo.level, color: dat.lightInfo.color } : null,
-    },
-  };
+      light: dat.lightInfo ? { level: dat.lightInfo.level, color: dat.lightInfo.color } : null
+    }
+  }
 }

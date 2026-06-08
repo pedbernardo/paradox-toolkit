@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@paradoxlab/otb.svg)](https://www.npmjs.com/package/@paradoxlab/otb)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](../../LICENSE)
 
-Parser and writer for OTServer's `items.otb` binary format. Reads item metadata (server IDs, client IDs, flags, and TLV attributes) used by TFS and compatible OTServer implementations.
+Parser and writer for OTServers `items.otb` binary format. Reads item metadata (server IDs, client IDs, flags, and TLV attributes) used by TFS and compatible OTServer implementations.
 
 ## Installation
 

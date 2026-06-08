@@ -1,27 +1,27 @@
-import { ParseError } from "@paradox/utils";
+import { ParseError } from '@paradox/utils'
 
 export const NODE_SPECIAL_BYTE = {
   START: 0xfe,
   END: 0xff,
-  ESCAPE: 0xfd,
-} as const;
+  ESCAPE: 0xfd
+} as const
 
-export const ROOT_NODE_ATTR = 1;
+export const ROOT_NODE_ATTR = 1
 
-export const OTB_VERSIONS = [1, 2, 3] as const;
+export const OTB_VERSIONS = [1, 2, 3] as const
 
 export function parseSchemaVersion(v: string): { major: number; minor: number; build: number } {
-  const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(v);
+  const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(v)
   if (match === null) {
-    throw new ParseError(`OTB: invalid schema version "${v}"`);
+    throw new ParseError(`OTB: invalid schema version "${v}"`)
   }
-  const major = Number(match[1]);
-  const minor = Number(match[2]);
-  const build = Number(match[3]);
+  const major = Number(match[1])
+  const minor = Number(match[2])
+  const build = Number(match[3])
   if (!(OTB_VERSIONS as readonly number[]).includes(major)) {
-    throw new ParseError(`OTB: unsupported schema version major ${major}`);
+    throw new ParseError(`OTB: unsupported schema version major ${major}`)
   }
-  return { major, minor, build };
+  return { major, minor, build }
 }
 
 export const ITEM_GROUP = {
@@ -40,5 +40,5 @@ export const ITEM_GROUP = {
   FLUID: 12,
   DOOR: 13,
   DEPRECATED: 14,
-  LAST: 15,
-} as const;
+  LAST: 15
+} as const

@@ -1,45 +1,45 @@
-import sharp from "sharp";
-import type { SprFile } from "@paradox/spr";
-import { SPRITESHEET_SCHEMA_VERSION, type SpritesheetOutput } from "./types.js";
+import sharp from 'sharp'
+import type { SprFile } from '@paradox/spr'
+import { SPRITESHEET_SCHEMA_VERSION, type SpritesheetOutput } from './types.js'
 
-const SPRITE_SIZE = 32;
-const DEFAULT_MAX_WIDTH = 4096;
-const PADDING = 1;
-const CELL_SIZE = SPRITE_SIZE + PADDING;
+const SPRITE_SIZE = 32
+const DEFAULT_MAX_WIDTH = 4096
+const PADDING = 1
+const CELL_SIZE = SPRITE_SIZE + PADDING
 
 type SpritesheetInput = {
-  spr: SprFile;
-  maxWidth?: number;
-};
+  spr: SprFile
+  maxWidth?: number
+}
 
 export function Spriter({ spr, maxWidth = DEFAULT_MAX_WIDTH }: SpritesheetInput) {
   if (maxWidth < CELL_SIZE) {
     throw new Error(
-      `maxWidth must be at least ${CELL_SIZE} (SPRITE_SIZE + PADDING); got ${maxWidth}`,
-    );
+      `maxWidth must be at least ${CELL_SIZE} (SPRITE_SIZE + PADDING); got ${maxWidth}`
+    )
   }
 
-  return { build };
+  return { build }
 
   async function build(): Promise<SpritesheetOutput> {
-    const columns = Math.floor(maxWidth / CELL_SIZE);
-    const rows = Math.ceil(spr.count / columns);
-    const width = columns * CELL_SIZE - PADDING;
-    const height = rows * CELL_SIZE - PADDING;
+    const columns = Math.floor(maxWidth / CELL_SIZE)
+    const rows = Math.ceil(spr.count / columns)
+    const width = columns * CELL_SIZE - PADDING
+    const height = rows * CELL_SIZE - PADDING
 
-    const rawBuffer = new Uint8Array(width * height * 4);
-    const positions = new Map<number, { x: number; y: number }>();
+    const rawBuffer = new Uint8Array(width * height * 4)
+    const positions = new Map<number, { x: number; y: number }>()
 
-    let index = 0;
+    let index = 0
     for (const [id, sprite] of spr.entries()) {
-      const col = index % columns;
-      const row = Math.floor(index / columns);
-      const x = col * CELL_SIZE;
-      const y = row * CELL_SIZE;
+      const col = index % columns
+      const row = Math.floor(index / columns)
+      const x = col * CELL_SIZE
+      const y = row * CELL_SIZE
 
-      positions.set(id, { x, y });
-      copySprite(sprite.rgba, rawBuffer, x, y, width);
-      index++;
+      positions.set(id, { x, y })
+      copySprite(sprite.rgba, rawBuffer, x, y, width)
+      index++
     }
 
     /**
@@ -62,21 +62,21 @@ export function Spriter({ spr, maxWidth = DEFAULT_MAX_WIDTH }: SpritesheetInput)
      */
     const png = await sharp(Buffer.from(rawBuffer.buffer), {
       raw: { width, height, channels: 4 },
-      limitInputPixels: false,
+      limitInputPixels: false
     })
       .png({ compressionLevel: 9, adaptiveFiltering: true, palette: true, effort: 10 })
-      .toBuffer();
+      .toBuffer()
 
     const meta = {
       schema: SPRITESHEET_SCHEMA_VERSION,
       version: spr.version,
-      spr: spr.signature.toString(16).toUpperCase().padStart(8, "0"),
+      spr: spr.signature.toString(16).toUpperCase().padStart(8, '0'),
       width,
       height,
-      sprites: spr.count,
-    };
+      sprites: spr.count
+    }
 
-    return { meta, png, positions };
+    return { meta, png, positions }
   }
 }
 
@@ -85,16 +85,16 @@ function copySprite(
   target: Uint8Array,
   startX: number,
   startY: number,
-  targetWidth: number,
+  targetWidth: number
 ): void {
   for (let py = 0; py < SPRITE_SIZE; py++) {
     for (let px = 0; px < SPRITE_SIZE; px++) {
-      const srcIndex = (py * SPRITE_SIZE + px) * 4;
-      const dstIndex = ((startY + py) * targetWidth + (startX + px)) * 4;
-      target[dstIndex] = rgba[srcIndex]!;
-      target[dstIndex + 1] = rgba[srcIndex + 1]!;
-      target[dstIndex + 2] = rgba[srcIndex + 2]!;
-      target[dstIndex + 3] = rgba[srcIndex + 3]!;
+      const srcIndex = (py * SPRITE_SIZE + px) * 4
+      const dstIndex = ((startY + py) * targetWidth + (startX + px)) * 4
+      target[dstIndex] = rgba[srcIndex]!
+      target[dstIndex + 1] = rgba[srcIndex + 1]!
+      target[dstIndex + 2] = rgba[srcIndex + 2]!
+      target[dstIndex + 3] = rgba[srcIndex + 3]!
     }
   }
 }

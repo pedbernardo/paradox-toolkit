@@ -3,9 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@paradoxlab/spr.svg)](https://www.npmjs.com/package/@paradoxlab/spr)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](../../LICENSE)
 
-Parser and writer for Tibia's `.spr` binary format. Reads 32×32 RGBA sprites with RLE decompression, transparent-magenta decoding, and lazy loading. Supports Tibia client versions 7.40 - 12.x.
-
-> Note: `.spr` files are proprietary Tibia client assets. Do not redistribute them.
+Parser and writer for `.spr` binary format. Reads 32×32 RGBA sprites with RLE decompression, transparent-magenta decoding, and lazy loading.
 
 ## Installation
 
@@ -87,10 +85,9 @@ Transparent sprites (ID maps to a null offset) return `rgba` filled with zeros.
 
 ## Format Notes
 
-- Magenta (`#FF00FF`) pixels are the Tibia transparency color. The parser converts them to `alpha = 0`.
+- Magenta (`#FF00FF`) pixels are the transparency color. The parser converts them to `alpha = 0`.
 - Pixel data is RLE-compressed: each run is `(transparent_count: u16, colored_count: u16, colored_bytes...)`. The decoder expands this into flat RGBA.
 - An offset table at the start of the file stores one `u32` per sprite pointing to its raw data position. Null offsets (0x00000000) indicate empty/transparent-only sprites.
-- A [known bug](https://github.com/OpenTibia/OTClient/issues/2) in some loaders skipped updating the internal `useCache` flag after a cache hit, causing repeated reads to return stale decoded data. This parser always re-derives from the decoded buffer correctly.
 - Extended sprite IDs (versions >= 960) use `u32` IDs; older versions use `u16`. The version flag `extendedSprites` in `@paradoxlab/utils` controls which is used.
 
 ---

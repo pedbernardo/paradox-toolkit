@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@paradoxlab/thinger.svg)](https://www.npmjs.com/package/@paradoxlab/thinger)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](../../LICENSE)
 
-Build tool that merges a parsed `.dat` file with a parsed `items.otb` file to produce typed `ContentDefinitions` JSON — the content layer consumed by game servers and web tooling. Also ships a `thinger` CLI.
+Build tool that merges a parsed `.dat` file with a parsed `items.otb` file to produce typed `ContentDefinitions` JSON - the content layer consumed by game servers and web tooling. Also ships a `thinger` CLI.
 
 ## Installation
 
@@ -99,7 +99,7 @@ Items without an OTB counterpart (DAT-only) have `sid: undefined`.
 ## Format Notes
 
 - The merge key is the client ID (`cid`): DAT is iterated by client ID; OTB entries map their client ID to a server ID. Items present in OTB but missing from DAT emit a warning and are skipped.
-- Creature, effect, and missile entries come from DAT only — there is no OTB equivalent for these groups.
+- Creature, effect, and missile entries come from DAT only - there is no OTB equivalent for these groups.
 - `generatedAt` in `meta` is an ISO 8601 timestamp set at build time.
 
 ---

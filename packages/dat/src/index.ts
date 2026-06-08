@@ -1,4 +1,4 @@
-export { Dat } from "./dat.js";
+export { Dat } from './dat.js'
 export type {
   DatFile,
   DatWriteInput,
@@ -9,6 +9,6 @@ export type {
   DatCounts,
   MarketData,
   AnimationData,
-  FrameGroup,
-} from "./types.js";
-export { ParseError } from "@paradox/utils";
+  FrameGroup
+} from './types.js'
+export { ParseError } from '@paradox/utils'

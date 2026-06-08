@@ -2,6 +2,16 @@
   "name": "@paradox/spr",
   "version": "0.1.0",
   "private": false,
+  "description": "A TypeScript parser and writer for OTServers `.spr` binary format.",
+  "keywords": [
+    "OTServer",
+    "binary",
+    "parser",
+    "spr",
+    "toolkit"
+  ],
+  "license": "MIT",
+  "author": "Pedro Bernardo <pedrovbernardo@gmail.com>",
   "files": [
     "dist"
   ],

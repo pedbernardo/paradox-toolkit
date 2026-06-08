@@ -7,10 +7,10 @@
  * pnpm bench -- local.xlarge-v1 --profile
  */
 /* oxlint-disable no-console */
-import { readFileSync, existsSync, readdirSync, statSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
-import { Session } from "node:inspector/promises";
-import { Otbm } from "./otbm.js";
+import { readFileSync, existsSync, readdirSync, statSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { Session } from 'node:inspector/promises'
+import { Otbm } from './otbm.js'
 
 // Baseline: 2026-05-25, Node 22, Windows 11 (stream parser + typed arrays)
 // fixture                          size      parse    MB/s       tiles       items  towns
@@ -23,121 +23,121 @@ import { Otbm } from "./otbm.js";
 //
 // Bottleneck: object allocation per tile/item — byte scanning is constant across sizes.
 
-const FIXTURES_DIR = join(import.meta.dirname, "../fixtures");
-const PASSTHROUGH_LOOKUP = { getBySid: (sid: number) => ({ cid: sid }) };
-const isTTY = process.stdout.isTTY;
+const FIXTURES_DIR = join(import.meta.dirname, '../fixtures')
+const PASSTHROUGH_LOOKUP = { getBySid: (sid: number) => ({ cid: sid }) }
+const isTTY = process.stdout.isTTY
 
-const args = process.argv.slice(2);
-const enableProfile = args.includes("--profile");
-const targetName = args.find((a) => !a.startsWith("--"));
+const args = process.argv.slice(2)
+const enableProfile = args.includes('--profile')
+const targetName = args.find((a) => !a.startsWith('--'))
 
 function resolveFixtureName(name: string): string {
-  return name.endsWith(".otbm") ? name : `${name}.otbm`;
+  return name.endsWith('.otbm') ? name : `${name}.otbm`
 }
 
 function discoverFixtures(): string[] {
   return readdirSync(FIXTURES_DIR)
-    .filter((f) => f.endsWith(".otbm"))
-    .sort((a, b) => statSync(join(FIXTURES_DIR, a)).size - statSync(join(FIXTURES_DIR, b)).size);
+    .filter((f) => f.endsWith('.otbm'))
+    .sort((a, b) => statSync(join(FIXTURES_DIR, a)).size - statSync(join(FIXTURES_DIR, b)).size)
 }
 
 function isV0(name: string): boolean {
-  return name.includes("-v0");
+  return name.includes('-v0')
 }
 
 function pad(s: string | number, n: number): string {
-  return String(s).padStart(n);
+  return String(s).padStart(n)
 }
 
 function fmt(n: number): string {
-  return n.toLocaleString("en-US");
+  return n.toLocaleString('en-US')
 }
 
-const CW = { fixture: 33, size: 7, parse: 9, mbs: 5, tiles: 9, items: 10, towns: 5 };
+const CW = { fixture: 33, size: 7, parse: 9, mbs: 5, tiles: 9, items: 10, towns: 5 }
 
 function runOne(name: string): void {
-  const path = join(FIXTURES_DIR, name);
+  const path = join(FIXTURES_DIR, name)
   if (!existsSync(path)) {
-    console.error(`fixture not found: ${name}`);
-    process.exit(1);
+    console.error(`fixture not found: ${name}`)
+    process.exit(1)
   }
 
-  const sizeMb = statSync(path).size / 1024 / 1024;
-  const prefix = `  ${name.padEnd(CW.fixture)} ${pad(sizeMb.toFixed(1) + "MB", CW.size)}`;
+  const sizeMb = statSync(path).size / 1024 / 1024
+  const prefix = `  ${name.padEnd(CW.fixture)} ${pad(sizeMb.toFixed(1) + 'MB', CW.size)}`
 
-  let lastPct = -1;
+  let lastPct = -1
   const onProgress =
     isTTY && sizeMb > 10
       ? (pct: number) => {
-          const pct100 = Math.min(100, Math.round(pct * 100));
+          const pct100 = Math.min(100, Math.round(pct * 100))
           if (pct100 !== lastPct) {
-            process.stdout.write(`\r${prefix}  parsing ${pad(pct100, 3)}%`);
-            lastPct = pct100;
+            process.stdout.write(`\r${prefix}  parsing ${pad(pct100, 3)}%`)
+            lastPct = pct100
           }
         }
-      : undefined;
+      : undefined
 
-  const buf = readFileSync(path);
-  const arr = new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
+  const buf = readFileSync(path)
+  const arr = new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength)
 
-  const factoryOpts = isV0(name) ? { lookup: PASSTHROUGH_LOOKUP } : undefined;
-  const loadOpts = onProgress !== undefined ? { onProgress } : undefined;
-  const t0 = Date.now();
-  const file = Otbm(factoryOpts).load(arr, loadOpts);
-  const ms = Date.now() - t0;
-  const s = file.getStats();
+  const factoryOpts = isV0(name) ? { lookup: PASSTHROUGH_LOOKUP } : undefined
+  const loadOpts = onProgress !== undefined ? { onProgress } : undefined
+  const t0 = Date.now()
+  const file = Otbm(factoryOpts).load(arr, loadOpts)
+  const ms = Date.now() - t0
+  const s = file.getStats()
 
-  const mbsStr = (sizeMb / (ms / 1000)).toFixed(1);
+  const mbsStr = (sizeMb / (ms / 1000)).toFixed(1)
   const row =
-    `${isTTY && onProgress ? "\r\x1b[K" : ""}${prefix}` +
-    `  ${pad(fmt(ms) + "ms", CW.parse)}` +
+    `${isTTY && onProgress ? '\r\x1b[K' : ''}${prefix}` +
+    `  ${pad(fmt(ms) + 'ms', CW.parse)}` +
     `  ${pad(mbsStr, CW.mbs)}` +
     `  ${pad(fmt(s.tiles), CW.tiles)}` +
     `  ${pad(fmt(s.items), CW.items)}` +
-    `  ${pad(s.towns, CW.towns)}\n`;
-  process.stdout.write(row);
+    `  ${pad(s.towns, CW.towns)}\n`
+  process.stdout.write(row)
 }
 
 async function main() {
-  const fixtures = targetName ? [resolveFixtureName(targetName)] : discoverFixtures();
+  const fixtures = targetName ? [resolveFixtureName(targetName)] : discoverFixtures()
 
   console.log(
-    `\notbm.bench — ${fixtures.length} fixture(s)${enableProfile ? " [profiling]" : ""}\n`,
-  );
+    `\notbm.bench — ${fixtures.length} fixture(s)${enableProfile ? ' [profiling]' : ''}\n`
+  )
 
-  const hr = (w: number) => "-".repeat(w);
+  const hr = (w: number) => '-'.repeat(w)
   console.log(
-    `  ${"fixture".padEnd(CW.fixture)} ${"size".padStart(CW.size)}` +
-      `  ${"parse".padStart(CW.parse)}  ${"MB/s".padStart(CW.mbs)}` +
-      `  ${"tiles".padStart(CW.tiles)}  ${"items".padStart(CW.items)}  ${"towns".padStart(CW.towns)}`,
-  );
+    `  ${'fixture'.padEnd(CW.fixture)} ${'size'.padStart(CW.size)}` +
+      `  ${'parse'.padStart(CW.parse)}  ${'MB/s'.padStart(CW.mbs)}` +
+      `  ${'tiles'.padStart(CW.tiles)}  ${'items'.padStart(CW.items)}  ${'towns'.padStart(CW.towns)}`
+  )
   console.log(
-    `  ${hr(CW.fixture)} ${hr(CW.size)}  ${hr(CW.parse)}  ${hr(CW.mbs)}  ${hr(CW.tiles)}  ${hr(CW.items)}  ${hr(CW.towns)}`,
-  );
+    `  ${hr(CW.fixture)} ${hr(CW.size)}  ${hr(CW.parse)}  ${hr(CW.mbs)}  ${hr(CW.tiles)}  ${hr(CW.items)}  ${hr(CW.towns)}`
+  )
 
-  let session: InstanceType<typeof Session> | null = null;
+  let session: InstanceType<typeof Session> | null = null
   if (enableProfile) {
-    session = new Session();
-    session.connect();
-    await session.post("Profiler.enable");
-    await session.post("Profiler.setSamplingInterval", { interval: 100 });
-    await session.post("Profiler.start");
+    session = new Session()
+    session.connect()
+    await session.post('Profiler.enable')
+    await session.post('Profiler.setSamplingInterval', { interval: 100 })
+    await session.post('Profiler.start')
   }
 
   for (const name of fixtures) {
-    runOne(name);
+    runOne(name)
   }
 
   if (session !== null) {
-    const result = (await session.post("Profiler.stop")) as { profile: object };
-    const filename = `CPU.${Date.now()}.cpuprofile`;
-    writeFileSync(filename, JSON.stringify(result.profile));
-    session.disconnect();
-    console.log(`\nProfile: ${filename}`);
+    const result = (await session.post('Profiler.stop')) as { profile: object }
+    const filename = `CPU.${Date.now()}.cpuprofile`
+    writeFileSync(filename, JSON.stringify(result.profile))
+    session.disconnect()
+    console.log(`\nProfile: ${filename}`)
   }
 }
 
 main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+  console.error(err)
+  process.exit(1)
+})

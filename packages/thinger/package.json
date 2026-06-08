@@ -2,6 +2,17 @@
   "name": "@paradox/thinger",
   "version": "0.1.0",
   "private": false,
+  "description": "A TypeScript API and CLI tool for converting `.dat` and `.otb` files to JSON metadata.",
+  "keywords": [
+    "OTServer",
+    "binary",
+    "dat",
+    "otb",
+    "parser",
+    "toolkit"
+  ],
+  "license": "MIT",
+  "author": "Pedro Bernardo <pedrovbernardo@gmail.com>",
   "bin": {
     "thinger": "./dist/cli.js"
   },

@@ -23,3 +23,6 @@ coverage
 
 # Temporary files
 tmp/
+
+# Draft files
+docs/drafts/

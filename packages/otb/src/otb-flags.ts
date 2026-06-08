@@ -1,5 +1,5 @@
-import { snakeCaseToCamelCase } from "@paradox/utils";
-import type { OtbItemFlags } from "./types.js";
+import { snakeCaseToCamelCase } from '@paradox/utils'
+import type { OtbItemFlags } from './types.js'
 
 export const ITEM_FLAG = {
   UNPASSABLE: 1 << 0,
@@ -28,23 +28,23 @@ export const ITEM_FLAG = {
   IGNORE_LOOK: 1 << 23,
   IS_ANIMATION: 1 << 24,
   FULL_GROUND: 1 << 25,
-  FORCE_USE: 1 << 26,
-} as const;
+  FORCE_USE: 1 << 26
+} as const
 
 export function getItemFlags(flagsInt: number): OtbItemFlags {
-  const flags = {} as Record<string, boolean>;
+  const flags = {} as Record<string, boolean>
   for (const [name, value] of Object.entries(ITEM_FLAG)) {
-    flags[snakeCaseToCamelCase(name)] = (flagsInt & value) === value;
+    flags[snakeCaseToCamelCase(name)] = (flagsInt & value) === value
   }
-  return flags as OtbItemFlags;
+  return flags as OtbItemFlags
 }
 
 export function flagsToInt(flags: OtbItemFlags): number {
-  let result = 0;
+  let result = 0
   for (const [name, value] of Object.entries(ITEM_FLAG)) {
     if (flags[snakeCaseToCamelCase(name) as keyof OtbItemFlags]) {
-      result |= value;
+      result |= value
     }
   }
-  return result;
+  return result
 }

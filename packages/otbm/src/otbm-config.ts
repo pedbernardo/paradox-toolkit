@@ -1,8 +1,8 @@
 export const NODE_SPECIAL_BYTE = {
   START: 0xfe,
   END: 0xff,
-  ESCAPE: 0xfd,
-} as const;
+  ESCAPE: 0xfd
+} as const
 
 export const OTBM_NODE_TYPE = {
   WORLD_NODE: 0x00,
@@ -14,8 +14,8 @@ export const OTBM_NODE_TYPE = {
   TOWN: 0x0d,
   HOUSETILE: 0x0e,
   WAYPOINTS: 0x0f,
-  WAYPOINT: 0x10,
-} as const;
+  WAYPOINT: 0x10
+} as const
 
 export const OTBM_ATTRIBUTE = {
   DESCRIPTION: 0x01,
@@ -37,16 +37,16 @@ export const OTBM_ATTRIBUTE = {
   SLEEPER_GUID: 0x14,
   SLEEP_START: 0x15,
   CHARGES: 0x16,
-  ATTRIBUTE_MAP: 0x80,
-} as const;
+  ATTRIBUTE_MAP: 0x80
+} as const
 
-export const TILE_KEY_Y_STRIDE = 65536;
-export const TILE_KEY_Z_STRIDE = 4294967296;
+export const TILE_KEY_Y_STRIDE = 65536
+export const TILE_KEY_Z_STRIDE = 4294967296
 
 export const OTBM_TILE_FLAG = {
   PROTECTION_ZONE: 0x01,
   NO_PVP: 0x04,
   NO_LOGOUT: 0x08,
   PVP_ZONE: 0x10,
-  REFRESH: 0x20,
-} as const;
+  REFRESH: 0x20
+} as const

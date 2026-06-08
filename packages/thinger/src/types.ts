@@ -1,4 +1,4 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { Type, type Static } from '@sinclair/typebox'
 
 /**
  * Semantic version of the content.json schema produced by @paradox/thinger.
@@ -11,16 +11,16 @@ import { Type, type Static } from "@sinclair/typebox";
  *
  * Consumers should reject files whose schema version they don't recognize.
  */
-export const CONTENT_SCHEMA_VERSION = "1.0.0";
+export const CONTENT_SCHEMA_VERSION = '1.0.0'
 
 const StackOrderSchema = Type.Union([
-  Type.Literal("ground"),
-  Type.Literal("border"),
-  Type.Literal("bottom"),
-  Type.Literal("top"),
-  Type.Literal("regular"),
-]);
-export type StackOrder = Static<typeof StackOrderSchema>;
+  Type.Literal('ground'),
+  Type.Literal('border'),
+  Type.Literal('bottom'),
+  Type.Literal('top'),
+  Type.Literal('regular')
+])
+export type StackOrder = Static<typeof StackOrderSchema>
 
 const ThingLayoutSchema = Type.Object({
   width: Type.Number(),
@@ -31,8 +31,8 @@ const ThingLayoutSchema = Type.Object({
   patternZ: Type.Number(),
   frames: Type.Number(),
   realSize: Type.Number(),
-  exactSize: Type.Number(),
-});
+  exactSize: Type.Number()
+})
 
 const ItemGameplaySchema = Type.Object({
   walkable: Type.Boolean(),
@@ -79,8 +79,8 @@ const ItemGameplaySchema = Type.Object({
   maxWriteLength: Type.Number(),
   description: Type.String(),
   minimapColor: Type.Union([Type.Number(), Type.Null()]),
-  lensHelp: Type.Union([Type.Number(), Type.Null()]),
-});
+  lensHelp: Type.Union([Type.Number(), Type.Null()])
+})
 
 const ItemVisualSchema = Type.Object({
   spriteIds: Type.Array(Type.Number()),
@@ -93,28 +93,28 @@ const ItemVisualSchema = Type.Object({
   alwaysAnimate: Type.Boolean(),
   dontHide: Type.Boolean(),
   translucent: Type.Boolean(),
-  noMoveAnimation: Type.Boolean(),
-});
+  noMoveAnimation: Type.Boolean()
+})
 
 export const ItemContentDefSchema = Type.Object({
   id: Type.Number(),
   name: Type.String(),
   gameplay: ItemGameplaySchema,
-  visual: ItemVisualSchema,
-});
-export type ItemContentDef = Static<typeof ItemContentDefSchema>;
+  visual: ItemVisualSchema
+})
+export type ItemContentDef = Static<typeof ItemContentDefSchema>
 
 const VisualOnlyVisualSchema = Type.Object({
   spriteIds: Type.Array(Type.Number()),
   layout: ThingLayoutSchema,
-  light: Type.Union([Type.Object({ level: Type.Number(), color: Type.Number() }), Type.Null()]),
-});
+  light: Type.Union([Type.Object({ level: Type.Number(), color: Type.Number() }), Type.Null()])
+})
 
 export const VisualOnlyDefSchema = Type.Object({
   id: Type.Number(),
-  visual: VisualOnlyVisualSchema,
-});
-export type VisualOnlyDef = Static<typeof VisualOnlyDefSchema>;
+  visual: VisualOnlyVisualSchema
+})
+export type VisualOnlyDef = Static<typeof VisualOnlyDefSchema>
 
 export const ContentMetaSchema = Type.Object({
   schema: Type.String(),
@@ -125,20 +125,20 @@ export const ContentMetaSchema = Type.Object({
     items: Type.Number(),
     creatures: Type.Number(),
     effects: Type.Number(),
-    missiles: Type.Number(),
-  }),
-});
-export type ContentMeta = Static<typeof ContentMetaSchema>;
+    missiles: Type.Number()
+  })
+})
+export type ContentMeta = Static<typeof ContentMetaSchema>
 
 const ContentDefinitionsSchema = Type.Object({
   meta: ContentMetaSchema,
   items: Type.Array(ItemContentDefSchema),
   creatures: Type.Array(VisualOnlyDefSchema),
   effects: Type.Array(VisualOnlyDefSchema),
-  missiles: Type.Array(VisualOnlyDefSchema),
-});
-export type ContentDefinitions = Static<typeof ContentDefinitionsSchema>;
+  missiles: Type.Array(VisualOnlyDefSchema)
+})
+export type ContentDefinitions = Static<typeof ContentDefinitionsSchema>
 
 // Semantic alias: explicit link between ContentDefinitions and content.json on disk
-export const ContentJsonSchema = ContentDefinitionsSchema;
-export type ContentJson = ContentDefinitions;
+export const ContentJsonSchema = ContentDefinitionsSchema
+export type ContentJson = ContentDefinitions

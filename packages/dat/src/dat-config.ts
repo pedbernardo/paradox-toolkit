@@ -1,4 +1,4 @@
-import type { ThingGroup } from "./types.js";
+import type { ThingGroup } from './types.js'
 
 export const DAT_SIGNATURES: Readonly<Record<number, number>> = {
   710: 0x3dff4b2a,
@@ -12,16 +12,16 @@ export const DAT_SIGNATURES: Readonly<Record<number, number>> = {
   870: 0x4cfe22c5,
   960: 0x4ffa74cc,
   980: 0x50c70674,
-  1098: 0x000042a3,
-};
+  1098: 0x000042a3
+}
 
-export const DAT_FLAG_END_MARK = 0xff;
+export const DAT_FLAG_END_MARK = 0xff
 
-export type ThingsGroup = { startId: number; group: ThingGroup };
+export type ThingsGroup = { startId: number; group: ThingGroup }
 
 export const THINGS_GROUPS: Readonly<Record<ThingGroup, ThingsGroup>> = {
-  items: { startId: 100, group: "items" },
-  creatures: { startId: 1, group: "creatures" },
-  effects: { startId: 1, group: "effects" },
-  missiles: { startId: 1, group: "missiles" },
-};
+  items: { startId: 100, group: 'items' },
+  creatures: { startId: 1, group: 'creatures' },
+  effects: { startId: 1, group: 'effects' },
+  missiles: { startId: 1, group: 'missiles' }
+}
