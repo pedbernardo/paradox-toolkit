@@ -1,6 +1,6 @@
 {
   "name": "@paradox/otb",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": false,
   "description": "A TypeScript parser and writer for OTServers `.otb` binary format.",
   "keywords": [

@@ -1,6 +1,6 @@
 {
   "name": "@paradox/spriter",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": false,
   "description": "A TypeScript API and CLI tool for converting `.spr` to sprithesheet PNG and JSON metadata.",
   "keywords": [
