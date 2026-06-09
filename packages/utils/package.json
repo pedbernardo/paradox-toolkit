@@ -2,6 +2,15 @@
   "name": "@paradox/utils",
   "version": "0.2.0",
   "private": false,
+  "description": "Shared binary reader/writer utilities for the paradox-toolkit parsers.",
+  "keywords": [
+    "OTServer",
+    "binary",
+    "parser",
+    "toolkit"
+  ],
+  "license": "MIT",
+  "author": "Pedro Bernardo <pedrovbernardo@gmail.com>",
   "files": [
     "dist"
   ],
