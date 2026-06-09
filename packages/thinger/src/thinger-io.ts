@@ -17,8 +17,10 @@ export function loadInputs(datPath: string, otbPath: string, version: number): L
   try {
     const datBuf = readFileSync(datPath)
     const otbBuf = readFileSync(otbPath)
-    const dat = Dat(version).load(datBuf.buffer as ArrayBuffer)
-    const otb = Otb().load(otbBuf.buffer as ArrayBuffer)
+    const datBuffer = datBuf.buffer.slice(datBuf.byteOffset, datBuf.byteOffset + datBuf.byteLength)
+    const otbBuffer = otbBuf.buffer.slice(otbBuf.byteOffset, otbBuf.byteOffset + otbBuf.byteLength)
+    const dat = Dat(version).load(datBuffer as ArrayBuffer)
+    const otb = Otb().load(otbBuffer as ArrayBuffer)
     return { ok: true, dat, otb }
   } catch (err) {
     return {
