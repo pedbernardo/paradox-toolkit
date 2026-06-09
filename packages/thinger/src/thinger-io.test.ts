@@ -2,14 +2,18 @@ import { describe, it, expect } from 'vitest'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { tmpdir } from 'node:os'
+import { Dat } from '@paradox/dat'
+import { Otb } from '@paradox/otb'
 import { loadInputs, writeContent } from './thinger-io.js'
 import type { ContentDefinitions } from './types.js'
 
-const SOURCES = resolve(import.meta.dirname, '../vendor')
-const DAT_PATH = resolve(SOURCES, '772.dat')
-const OTB_PATH = resolve(SOURCES, '772.otb')
-const hasVendorDat = existsSync(DAT_PATH)
-const hasVendorOtb = existsSync(OTB_PATH)
+function buildMinimalDat(): Uint8Array {
+  return Dat(772).write({ version: 772, signature: 0, things: [] })
+}
+
+function buildMinimalOtb(): Uint8Array {
+  return Otb().write({ items: [], schemaVersion: '3.57.0' })
+}
 
 const stubContent: ContentDefinitions = {
   meta: {
@@ -27,38 +31,46 @@ const stubContent: ContentDefinitions = {
 
 describe('loadInputs - missing files', () => {
   it('returns error when DAT file does not exist', () => {
-    const result = loadInputs('/nonexistent/file.dat', OTB_PATH, 772)
+    const result = loadInputs('/nonexistent/file.dat', '/nonexistent/file.otb', 772)
     expect(result.ok).toBe(false)
     if (!result.ok) expect(result.error).toMatch(/DAT file not found/)
   })
 
-  it.skipIf(!hasVendorDat)('returns error when OTB file does not exist', () => {
-    const result = loadInputs(DAT_PATH, '/nonexistent/file.otb', 772)
+  it('returns error when OTB file does not exist', () => {
+    const tempDat = resolve(tmpdir(), `thinger-dat-${Date.now()}.dat`)
+    writeFileSync(tempDat, buildMinimalDat())
+    const result = loadInputs(tempDat, '/nonexistent/file.otb', 772)
     expect(result.ok).toBe(false)
     if (!result.ok) expect(result.error).toMatch(/OTB file not found/)
   })
 
   it('error message includes the missing path', () => {
     const missing = '/no/such/path.dat'
-    const result = loadInputs(missing, OTB_PATH, 772)
+    const result = loadInputs(missing, '/nonexistent/file.otb', 772)
     expect(result.ok).toBe(false)
     if (!result.ok) expect(result.error).toContain(missing)
   })
 })
 
-describe.skipIf(!hasVendorDat)('loadInputs - parse error', () => {
-  it('returns error when OTB file exists but fails to parse', () => {
-    const badOtb = resolve(tmpdir(), `thinger-test-bad-${Date.now()}.otb`)
-    writeFileSync(badOtb, Buffer.from([0x00, 0x01, 0x02, 0x03]))
-    const result = loadInputs(DAT_PATH, badOtb, 772)
+describe('loadInputs - parse error', () => {
+  it('returns error when inputs fail to parse', () => {
+    const tempDat = resolve(tmpdir(), `thinger-bad-dat-${Date.now()}.dat`)
+    const tempOtb = resolve(tmpdir(), `thinger-bad-otb-${Date.now()}.otb`)
+    writeFileSync(tempDat, Buffer.from([0x00, 0x01, 0x02, 0x03]))
+    writeFileSync(tempOtb, Buffer.from([0x00, 0x01, 0x02, 0x03]))
+    const result = loadInputs(tempDat, tempOtb, 772)
     expect(result.ok).toBe(false)
     if (!result.ok) expect(result.error).toMatch(/Failed to parse inputs/)
   })
 })
 
-describe.skipIf(!hasVendorDat || !hasVendorOtb)('loadInputs - valid files', () => {
+describe('loadInputs - valid files', () => {
   it('returns ok with parsed dat and otb', () => {
-    const result = loadInputs(DAT_PATH, OTB_PATH, 772)
+    const tempDat = resolve(tmpdir(), `thinger-dat-${Date.now()}.dat`)
+    const tempOtb = resolve(tmpdir(), `thinger-otb-${Date.now()}.otb`)
+    writeFileSync(tempDat, buildMinimalDat())
+    writeFileSync(tempOtb, buildMinimalOtb())
+    const result = loadInputs(tempDat, tempOtb, 772)
     expect(result.ok).toBe(true)
     if (result.ok) {
       expect(result.dat.version).toBe(772)
