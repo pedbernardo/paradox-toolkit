@@ -1,5 +1,5 @@
-import { createEscapedBinaryReader, ParseError } from '@paradox/utils'
-import type { EscapedBinaryReader } from '@paradox/utils'
+import { createEscapedBinaryReader, ParseError } from '@paradoxlab/utils'
+import type { EscapedBinaryReader } from '@paradoxlab/utils'
 import { NODE_SPECIAL_BYTE, ROOT_NODE_ATTR, OTB_VERSIONS, ITEM_GROUP } from './otb-config.js'
 import { getItemFlags } from './otb-flags.js'
 import { ATTRIBUTE_HANDLERS } from './otb-attributes.js'

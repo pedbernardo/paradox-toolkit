@@ -1,10 +1,10 @@
-import { createEscapedBinaryWriter } from '@paradox/utils'
-import type { EscapedBinaryWriter } from '@paradox/utils'
+import { createEscapedBinaryWriter } from '@paradoxlab/utils'
+import type { EscapedBinaryWriter } from '@paradoxlab/utils'
 import { NODE_SPECIAL_BYTE, ROOT_NODE_ATTR, ITEM_GROUP, parseSchemaVersion } from './otb-config.js'
 import { flagsToInt } from './otb-flags.js'
 import { ITEM_ATTRIBUTE, encodeStr } from './otb-attributes.js'
 import type { OtbItem, OtbWriteInput } from './types.js'
-import { ParseError } from '@paradox/utils'
+import { ParseError } from '@paradoxlab/utils'
 
 export function serializeOtb(data: OtbWriteInput): Uint8Array {
   const { major, minor, build } = parseSchemaVersion(data.schemaVersion)

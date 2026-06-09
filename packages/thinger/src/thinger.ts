@@ -1,5 +1,5 @@
-import type { DatFile } from '@paradox/dat'
-import type { OtbFile, OtbItem } from '@paradox/otb'
+import type { DatFile } from '@paradoxlab/dat'
+import type { OtbFile, OtbItem } from '@paradoxlab/otb'
 import { toItem, toVisualOnly } from './thinger-mapper.js'
 import { CONTENT_SCHEMA_VERSION, type ContentDefinitions } from './types.js'
 import nameMapData from './resources/name-map.json' with { type: 'json' }

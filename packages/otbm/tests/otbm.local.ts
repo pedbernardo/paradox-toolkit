@@ -1,7 +1,7 @@
 import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { ParseError } from '@paradox/utils'
+import { ParseError } from '@paradoxlab/utils'
 import type { OtbmFile } from '../src/types.js'
 import { Otbm } from '../src/otbm.js'
 

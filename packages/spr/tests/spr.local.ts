@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { ParseError, UnsupportedVersionError } from '@paradox/utils'
+import { ParseError, UnsupportedVersionError } from '@paradoxlab/utils'
 import type { SprFile } from '../src/types.js'
 import { Spr } from '../src/spr.js'
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ParseError } from '@paradox/utils'
+import { ParseError } from '@paradoxlab/utils'
 import { Dat } from './dat.js'
 import { DAT_SIGNATURES, THINGS_GROUPS } from './dat-config.js'
 import type { DatWriteInput, Thing } from './types.js'

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import type { Thing, ThingFlags, ThingLayout } from '@paradox/dat'
-import type { OtbItem, OtbItemFlags, OtbItemAttributes } from '@paradox/otb'
+import type { Thing, ThingFlags, ThingLayout } from '@paradoxlab/dat'
+import type { OtbItem, OtbItemFlags, OtbItemAttributes } from '@paradoxlab/otb'
 import { toItem, toVisualOnly } from './thinger-mapper.js'
 
 const defaultLayout: ThingLayout = {

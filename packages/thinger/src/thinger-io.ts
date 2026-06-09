@@ -1,9 +1,9 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { Dat } from '@paradox/dat'
-import { Otb } from '@paradox/otb'
-import type { DatFile } from '@paradox/dat'
-import type { OtbFile } from '@paradox/otb'
+import { Dat } from '@paradoxlab/dat'
+import { Otb } from '@paradoxlab/otb'
+import type { DatFile } from '@paradoxlab/dat'
+import type { OtbFile } from '@paradoxlab/otb'
 import type { ContentDefinitions } from './types.js'
 
 export type LoadResult = { ok: true; dat: DatFile; otb: OtbFile } | { ok: false; error: string }

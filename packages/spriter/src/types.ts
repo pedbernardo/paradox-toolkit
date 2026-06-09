@@ -1,7 +1,7 @@
 import { Type, type Static } from '@sinclair/typebox'
 
 /**
- * Semantic version of the positions.json schema produced by @paradox/spriter.
+ * Semantic version of the positions.json schema produced by @paradoxlab/spriter.
  *
  * Bump this when the shape of SpritesheetJson changes in a breaking way -
  * i.e. when a consumer reading an older positions.json would misinterpret or

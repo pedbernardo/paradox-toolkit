@@ -1,4 +1,4 @@
-import type { EscapedBinaryReader } from '@paradox/utils'
+import type { EscapedBinaryReader } from '@paradoxlab/utils'
 import type { OtbItem } from './types.js'
 
 const textDecoderLatin1 = new TextDecoder('latin1')

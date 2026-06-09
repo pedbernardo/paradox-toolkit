@@ -1,4 +1,4 @@
-import { ParseError } from '@paradox/utils'
+import { ParseError } from '@paradoxlab/utils'
 
 type FlagMap = Record<string, number>
 

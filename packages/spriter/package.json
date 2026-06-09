@@ -1,5 +1,5 @@
 {
-  "name": "@paradox/spriter",
+  "name": "@paradoxlab/spriter",
   "version": "0.2.0",
   "private": false,
   "description": "A TypeScript API and CLI tool for converting `.spr` to sprithesheet PNG and JSON metadata.",
@@ -27,7 +27,6 @@
     }
   },
   "publishConfig": {
-    "name": "@paradoxlab/spriter",
     "access": "public"
   },
   "scripts": {
@@ -40,7 +39,7 @@
     "generate:772": "tsx src/cli.ts generate --spr vendor/spr-772.spr --version 772 --out tmp"
   },
   "dependencies": {
-    "@paradox/spr": "workspace:*",
+    "@paradoxlab/spr": "workspace:*",
     "@sinclair/typebox": "catalog:",
     "commander": "catalog:",
     "sharp": "catalog:"

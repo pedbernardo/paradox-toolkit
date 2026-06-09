@@ -8,5 +8,5 @@ export type {
   VisualOnlyDef,
   StackOrder
 } from './types.js'
-export type { DatFile } from '@paradox/dat'
-export type { OtbFile } from '@paradox/otb'
+export type { DatFile } from '@paradoxlab/dat'
+export type { OtbFile } from '@paradoxlab/otb'

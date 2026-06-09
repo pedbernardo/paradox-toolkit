@@ -1,4 +1,4 @@
-import { snakeCaseToCamelCase } from '@paradox/utils'
+import { snakeCaseToCamelCase } from '@paradoxlab/utils'
 import type { OtbItemFlags } from './types.js'
 
 export const ITEM_FLAG = {

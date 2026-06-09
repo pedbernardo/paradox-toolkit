@@ -1,5 +1,5 @@
 {
-  "name": "@paradox/utils",
+  "name": "@paradoxlab/utils",
   "version": "0.2.0",
   "private": false,
   "description": "Shared binary reader/writer utilities for the paradox-toolkit parsers.",
@@ -23,7 +23,6 @@
     }
   },
   "publishConfig": {
-    "name": "@paradoxlab/utils",
     "access": "public"
   },
   "scripts": {

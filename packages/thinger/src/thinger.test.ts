@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import type { Thing, ThingLayout, DatFile } from '@paradox/dat'
-import type { OtbItem, OtbFile, OtbItemFlags } from '@paradox/otb'
+import type { Thing, ThingLayout, DatFile } from '@paradoxlab/dat'
+import type { OtbItem, OtbFile, OtbItemFlags } from '@paradoxlab/otb'
 import { Thinger } from './thinger.js'
 
 const defaultLayout: ThingLayout = {

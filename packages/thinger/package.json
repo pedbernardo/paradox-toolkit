@@ -1,5 +1,5 @@
 {
-  "name": "@paradox/thinger",
+  "name": "@paradoxlab/thinger",
   "version": "0.2.0",
   "private": false,
   "description": "A TypeScript API and CLI tool for converting `.dat` and `.otb` files to JSON metadata.",
@@ -27,7 +27,6 @@
     }
   },
   "publishConfig": {
-    "name": "@paradoxlab/thinger",
     "access": "public"
   },
   "scripts": {
@@ -40,8 +39,8 @@
     "generate:772": "tsx src/cli.ts generate --dat vendor/772.dat --otb vendor/772.otb --version 772 --out tmp --pretty"
   },
   "dependencies": {
-    "@paradox/dat": "workspace:*",
-    "@paradox/otb": "workspace:*",
+    "@paradoxlab/dat": "workspace:*",
+    "@paradoxlab/otb": "workspace:*",
     "@sinclair/typebox": "catalog:",
     "commander": "catalog:"
   },

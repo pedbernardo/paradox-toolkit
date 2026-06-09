@@ -12,4 +12,4 @@ export type {
   AnimationData,
   FrameGroup
 } from './types.js'
-export { ParseError } from '@paradox/utils'
+export { ParseError } from '@paradoxlab/utils'

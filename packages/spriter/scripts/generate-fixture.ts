@@ -1,7 +1,7 @@
 import { writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
-// SPR signature for version 772 (from @paradox/spr spr-config.ts)
+// SPR signature for version 772 (from @paradoxlab/spr spr-config.ts)
 const SIGNATURE_772 = 0x439852be
 
 const COUNT = 10

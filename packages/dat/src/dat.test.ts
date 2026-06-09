@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ParseError, UnsupportedVersionError } from '@paradox/utils'
+import { ParseError, UnsupportedVersionError } from '@paradoxlab/utils'
 import { Dat } from './dat.js'
 import { DAT_SIGNATURES } from './dat-config.js'
 import { getDatFlags } from './dat-flags.js'

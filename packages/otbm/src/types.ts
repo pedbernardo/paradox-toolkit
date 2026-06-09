@@ -40,7 +40,7 @@ export type OtbmRegularTile = {
   y: number
   z: number
   // Raw bitmask — kept as number (not OtbmTileFlags) to avoid allocating one object per tile;
-  // maps can have 100k+ tiles. Use decodeTileFlags() from @paradox/otbm when you need the
+  // maps can have 100k+ tiles. Use decodeTileFlags() from @paradoxlab/otbm when you need the
   // decoded form.
   flags: number
   actionId?: number

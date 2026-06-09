@@ -1,4 +1,4 @@
-import { createBinaryWriter, getVersionFeatures } from '@paradox/utils'
+import { createBinaryWriter, getVersionFeatures } from '@paradoxlab/utils'
 import { DAT_SIGNATURES, DAT_FLAG_END_MARK, THINGS_GROUPS } from './dat-config.js'
 import { getDatFlags } from './dat-flags.js'
 import { createWriteRules } from './dat-flags-parser.js'

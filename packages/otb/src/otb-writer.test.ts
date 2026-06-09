@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { ParseError } from '@paradox/utils'
+import { ParseError } from '@paradoxlab/utils'
 import { Otb } from './otb.js'
 import { serializeOtb } from './otb-writer.js'
 import { ITEM_GROUP } from './otb-config.js'

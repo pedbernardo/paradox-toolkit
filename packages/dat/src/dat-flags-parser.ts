@@ -1,4 +1,4 @@
-import { type BinaryReader, type BinaryWriter, snakeCaseToCamelCase } from '@paradox/utils'
+import { type BinaryReader, type BinaryWriter, snakeCaseToCamelCase } from '@paradoxlab/utils'
 import type { MarketData, ThingFlags } from './types.js'
 
 type FlagMap = Record<string, number>

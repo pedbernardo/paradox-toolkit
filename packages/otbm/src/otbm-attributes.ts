@@ -1,5 +1,5 @@
-import { ParseError, BufferOverflowError } from '@paradox/utils'
-import type { EscapedSliceReader } from '@paradox/utils'
+import { ParseError, BufferOverflowError } from '@paradoxlab/utils'
+import type { EscapedSliceReader } from '@paradoxlab/utils'
 import { OTBM_ATTRIBUTE, OTBM_TILE_FLAG } from './otbm-config.js'
 import type { OtbmItem, OtbmTile, OtbmTileFlags } from './types.js'
 

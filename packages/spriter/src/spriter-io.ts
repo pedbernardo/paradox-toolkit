@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { Spr } from '@paradox/spr'
-import type { SprFile } from '@paradox/spr'
+import { Spr } from '@paradoxlab/spr'
+import type { SprFile } from '@paradoxlab/spr'
 import type { SpritesheetJson, SpritesheetOutput } from './types.js'
 
 export type LoadResult = { ok: true; spr: SprFile } | { ok: false; error: string }

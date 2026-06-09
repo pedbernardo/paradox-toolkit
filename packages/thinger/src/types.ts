@@ -1,7 +1,7 @@
 import { Type, type Static } from '@sinclair/typebox'
 
 /**
- * Semantic version of the content.json schema produced by @paradox/thinger.
+ * Semantic version of the content.json schema produced by @paradoxlab/thinger.
  *
  * Bump this when the shape of ContentDefinitions changes in a breaking way -
  * i.e. when a consumer reading an older content.json would misinterpret or

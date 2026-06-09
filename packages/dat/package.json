@@ -1,5 +1,5 @@
 {
-  "name": "@paradox/dat",
+  "name": "@paradoxlab/dat",
   "version": "0.2.0",
   "private": false,
   "description": "A TypeScript parser and writer for OTServers `.dat` binary format.",
@@ -24,7 +24,6 @@
     }
   },
   "publishConfig": {
-    "name": "@paradoxlab/dat",
     "access": "public"
   },
   "scripts": {
@@ -36,7 +35,7 @@
     "test:local": "vitest run --config vitest.local.config.ts"
   },
   "dependencies": {
-    "@paradox/utils": "workspace:*"
+    "@paradoxlab/utils": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "catalog:",

@@ -1,4 +1,4 @@
-import { createBinaryReader, getVersionFeatures, ParseError } from '@paradox/utils'
+import { createBinaryReader, getVersionFeatures, ParseError } from '@paradoxlab/utils'
 import { SPR_SIGNATURES } from './spr-config.js'
 import { serializeSpr } from './spr-writer.js'
 import type { Sprite, SprFile, SprWriteInput, SprWriteOpts } from './types.js'

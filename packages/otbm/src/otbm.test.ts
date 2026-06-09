@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { ParseError } from '@paradox/utils'
+import { ParseError } from '@paradoxlab/utils'
 import type { OtbLookup, OtbmWriteInput } from './types.js'
 import { Otbm } from './otbm.js'
 import { decodeTileFlags } from './otbm-attributes.js'

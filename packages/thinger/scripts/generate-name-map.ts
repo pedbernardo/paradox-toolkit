@@ -1,7 +1,7 @@
 /* oxlint-disable no-console */
 import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { Otb } from '@paradox/otb'
+import { Otb } from '@paradoxlab/otb'
 
 const SOURCES_DIR = resolve(import.meta.dirname, '../vendor')
 const OTB_PATH = resolve(import.meta.dirname, '../vendor/772.otb')

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Spriter } from './spriter.js'
 import { SPRITESHEET_SCHEMA_VERSION } from './types.js'
-import type { SprFile } from '@paradox/spr'
+import type { SprFile } from '@paradoxlab/spr'
 
 const COUNT = 5
 const VERSION = 772

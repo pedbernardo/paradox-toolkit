@@ -1,5 +1,5 @@
-import { ParseError } from '@paradox/utils'
-import type { EscapedSliceReader } from '@paradox/utils'
+import { ParseError } from '@paradoxlab/utils'
+import type { EscapedSliceReader } from '@paradoxlab/utils'
 import {
   NODE_SPECIAL_BYTE,
   OTBM_NODE_TYPE,

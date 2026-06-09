@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ParseError, UnsupportedVersionError } from '@paradox/utils'
+import { ParseError, UnsupportedVersionError } from '@paradoxlab/utils'
 import { Spr } from './spr.js'
 import { SPR_SIGNATURES } from './spr-config.js'
 import type { Sprite } from './types.js'

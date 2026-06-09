@@ -1,4 +1,4 @@
-import { createBinaryReader, getVersionFeatures, ParseError } from '@paradox/utils'
+import { createBinaryReader, getVersionFeatures, ParseError } from '@paradoxlab/utils'
 import { DAT_SIGNATURES, DAT_FLAG_END_MARK, THINGS_GROUPS } from './dat-config.js'
 import { getDatFlags } from './dat-flags.js'
 import { createFlagsParser } from './dat-flags-parser.js'

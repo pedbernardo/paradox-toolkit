@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ParseError } from '@paradox/utils'
+import { ParseError } from '@paradoxlab/utils'
 import { parseSchemaVersion } from './otb-config.js'
 
 describe('parseSchemaVersion', () => {

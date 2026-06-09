@@ -1,5 +1,5 @@
 import sharp from 'sharp'
-import type { SprFile } from '@paradox/spr'
+import type { SprFile } from '@paradoxlab/spr'
 import { SPRITESHEET_SCHEMA_VERSION, type SpritesheetOutput } from './types.js'
 
 const SPRITE_SIZE = 32

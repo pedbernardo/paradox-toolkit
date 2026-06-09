@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createBinaryReader, createBinaryWriter } from '@paradox/utils'
+import { createBinaryReader, createBinaryWriter } from '@paradoxlab/utils'
 import { getDatFlags } from './dat-flags.js'
 import { createFlagsParser, createWriteRules } from './dat-flags-parser.js'
 

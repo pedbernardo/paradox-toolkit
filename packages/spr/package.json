@@ -1,5 +1,5 @@
 {
-  "name": "@paradox/spr",
+  "name": "@paradoxlab/spr",
   "version": "0.2.0",
   "private": false,
   "description": "A TypeScript parser and writer for OTServers `.spr` binary format.",
@@ -24,7 +24,6 @@
     }
   },
   "publishConfig": {
-    "name": "@paradoxlab/spr",
     "access": "public"
   },
   "scripts": {
@@ -37,7 +36,7 @@
     "bench": "node --import tsx/esm src/spr.bench.ts"
   },
   "dependencies": {
-    "@paradox/utils": "workspace:*"
+    "@paradoxlab/utils": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "catalog:",

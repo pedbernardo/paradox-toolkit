@@ -1,5 +1,5 @@
 {
-  "name": "@paradox/otbm",
+  "name": "@paradoxlab/otbm",
   "version": "0.2.0",
   "private": false,
   "description": "A TypeScript parser and writer for OTServers `.otbm` binary format.",
@@ -24,7 +24,6 @@
     }
   },
   "publishConfig": {
-    "name": "@paradoxlab/otbm",
     "access": "public"
   },
   "scripts": {
@@ -37,7 +36,7 @@
     "bench": "node --max-old-space-size=8192 --import tsx/esm src/otbm.bench.ts"
   },
   "dependencies": {
-    "@paradox/utils": "workspace:*"
+    "@paradoxlab/utils": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "catalog:",

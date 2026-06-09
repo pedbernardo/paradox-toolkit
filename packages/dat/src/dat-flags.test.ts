@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { getDatFlags } from './dat-flags.js'
-import { ParseError } from '@paradox/utils'
+import { ParseError } from '@paradoxlab/utils'
 
 describe('getDatFlags', () => {
   it('returns a flag map for every supported version group', () => {

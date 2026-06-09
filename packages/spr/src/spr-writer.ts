@@ -1,4 +1,4 @@
-import { createBinaryWriter, getVersionFeatures, ParseError } from '@paradox/utils'
+import { createBinaryWriter, getVersionFeatures, ParseError } from '@paradoxlab/utils'
 import { SPR_SIGNATURES } from './spr-config.js'
 import type { Sprite, SprWriteInput } from './types.js'
 

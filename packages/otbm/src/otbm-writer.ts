@@ -1,5 +1,5 @@
-import { createEscapedBinaryWriter } from '@paradox/utils'
-import type { EscapedBinaryWriter } from '@paradox/utils'
+import { createEscapedBinaryWriter } from '@paradoxlab/utils'
+import type { EscapedBinaryWriter } from '@paradoxlab/utils'
 import { NODE_SPECIAL_BYTE, OTBM_ATTRIBUTE, OTBM_NODE_TYPE } from './otbm-config.js'
 import type {
   OtbmItem,

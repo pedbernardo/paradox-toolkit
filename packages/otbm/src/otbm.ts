@@ -1,4 +1,4 @@
-import { createEscapedSliceReader, ParseError } from '@paradox/utils'
+import { createEscapedSliceReader, ParseError } from '@paradoxlab/utils'
 import { NODE_SPECIAL_BYTE, TILE_KEY_Y_STRIDE, TILE_KEY_Z_STRIDE } from './otbm-config.js'
 import { OtbmStreamParser } from './otbm-stream.js'
 import { serializeOtbm } from './otbm-writer.js'

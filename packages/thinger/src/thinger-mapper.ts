@@ -1,5 +1,5 @@
-import type { Thing, ThingFlags } from '@paradox/dat'
-import type { OtbItem } from '@paradox/otb'
+import type { Thing, ThingFlags } from '@paradoxlab/dat'
+import type { OtbItem } from '@paradoxlab/otb'
 import type { ItemContentDef, StackOrder, VisualOnlyDef } from './types.js'
 
 function deriveStackOrder(flags: ThingFlags): StackOrder {

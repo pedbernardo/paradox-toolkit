@@ -1,4 +1,4 @@
-import { ParseError } from '@paradox/utils'
+import { ParseError } from '@paradoxlab/utils'
 
 export const NODE_SPECIAL_BYTE = {
   START: 0xfe,

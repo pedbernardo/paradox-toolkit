@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { ParseError, UnsupportedVersionError } from '@paradox/utils'
+import { ParseError, UnsupportedVersionError } from '@paradoxlab/utils'
 import type { DatFile, DatWriteInput } from '../src/types.js'
 import { Dat } from '../src/dat.js'
 
