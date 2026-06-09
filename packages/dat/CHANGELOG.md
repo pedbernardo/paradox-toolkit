@@ -1,4 +1,4 @@
-# @paradox/dat
+# @paradoxlab/dat
 
 ## 0.2.0
 
@@ -9,4 +9,4 @@
 ### Patch Changes
 
 - Updated dependencies
-  - @paradox/utils@0.2.0
+  - @paradoxlab/utils@0.2.0

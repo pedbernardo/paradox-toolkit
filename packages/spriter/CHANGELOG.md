@@ -1,4 +1,4 @@
-# @paradox/spriter
+# @paradoxlab/spriter
 
 ## 0.2.0
 
@@ -9,4 +9,4 @@
 ### Patch Changes
 
 - Updated dependencies
-  - @paradox/spr@0.2.0
+  - @paradoxlab/spr@0.2.0

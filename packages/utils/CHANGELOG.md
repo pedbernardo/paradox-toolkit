@@ -1,4 +1,4 @@
-# @paradox/utils
+# @paradoxlab/utils
 
 ## 0.2.0
 

@@ -1,4 +1,4 @@
-# @paradox/thinger
+# @paradoxlab/thinger
 
 ## 0.2.0
 
@@ -9,5 +9,5 @@
 ### Patch Changes
 
 - Updated dependencies
-  - @paradox/dat@0.2.0
-  - @paradox/otb@0.2.0
+  - @paradoxlab/dat@0.2.0
+  - @paradoxlab/otb@0.2.0
