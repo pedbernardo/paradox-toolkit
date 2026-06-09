@@ -26,8 +26,8 @@ pnpm circular                         # detect circular deps between packages
 pnpm attw                             # verify exported types (warn-only)
 
 # Per-package
-pnpm --filter @paradox/dat typecheck
-pnpm --filter @paradox/otbm test:cov
+pnpm --filter @paradoxlab/dat typecheck
+pnpm --filter @paradoxlab/otbm test:cov
 
 # Release (manual - no CI publish)
 pnpm changeset                        # document what changed
@@ -51,20 +51,16 @@ Git hooks (Lefthook): pre-commit runs `lint-staged` (oxfmt + oxlint --fix on sta
 ### Package graph
 
 ```
-@paradox/spriter   → @paradox/spr
-@paradox/thinger   → @paradox/dat, @paradox/otb
-@paradox/dat       → @paradox/utils
-@paradox/spr       → @paradox/utils
-@paradox/otb       → @paradox/utils
-@paradox/otbm      → @paradox/utils
-@paradox/utils     → (none)
+@paradoxlab/spriter   → @paradoxlab/spr
+@paradoxlab/thinger   → @paradoxlab/dat, @paradoxlab/otb
+@paradoxlab/dat       → @paradoxlab/utils
+@paradoxlab/spr       → @paradoxlab/utils
+@paradoxlab/otb       → @paradoxlab/utils
+@paradoxlab/otbm      → @paradoxlab/utils
+@paradoxlab/utils     → (none)
 ```
 
-`@paradox/spriter` and `@paradox/thinger` are build tools (CLI + API). The other five are pure parsers/writers.
-
-### Internal name vs. published name
-
-Packages use `@paradox/*` for internal `workspace:*` references. Published to npm as `@paradoxlab/*` via `publishConfig.name` in each `package.json`.
+`@paradoxlab/spriter` and `@paradoxlab/thinger` are build tools (CLI + API). The other five are pure parsers/writers.
 
 ### Package anatomy
 
@@ -110,13 +106,13 @@ const sheet = await Spriter({ spr: sprFile, maxWidth: 4096 }).build()
 
 Supported client versions: `710, 740, 750, 755, 760, 770, 772, 860, 870, 960, 980, 1098`.
 
-`getVersionFeatures(version)` from `@paradox/utils` returns the feature flags for a given version and throws `UnsupportedVersionError` for anything outside this list.
+`getVersionFeatures(version)` from `@paradoxlab/utils` returns the feature flags for a given version and throws `UnsupportedVersionError` for anything outside this list.
 
 ### Error model
 
 - `ParseError` - malformed or unexpected binary data. Thrown by all parsers.
 - `UnsupportedVersionError` - version not in the supported list.
-- Both are exported from `@paradox/utils` and re-exported by each package's `index.ts`.
+- Both are exported from `@paradoxlab/utils` and re-exported by each package's `index.ts`.
 - CLI boundaries (`spriter` CLI) catch errors and exit via `console.error + process.exit(1)`, not re-throw.
 
 ---
@@ -163,7 +159,7 @@ Local tests (`tests/*.local.ts`) test against real binary files and must guard w
 
 ### Binary readers/writers
 
-Always use `createBinaryReader` / `createBinaryWriter` from `@paradox/utils`. Never use `DataView` or manual byte manipulation in package-level code.
+Always use `createBinaryReader` / `createBinaryWriter` from `@paradoxlab/utils`. Never use `DataView` or manual byte manipulation in package-level code.
 
 Module-level `TextDecoder` constants for hot paths:
 

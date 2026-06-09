@@ -72,7 +72,7 @@ Each non-sentinel byte maps to a named flag. The mapping is **version-dependent*
 | u16 + u16 | `LIGHT_INFO` (level, color), `HAS_OFFSET` (offsetX, offsetY, v760+), `HAS_ELEVATION` (height, plus second u16) |
 | complex | `MARKET` (v960+): u16 category + u16 tradeAs + u16 showAs + u16 nameLen + string + u16 restrictVocation + u16 requiredLevel |
 
-Flag positions shifted significantly across the major version breakpoints: v710, v740/750, v755, and v860. The `@paradox/dat` package resolves the correct mapping via `getVersionFeatures`.
+Flag positions shifted significantly across the major version breakpoints: v710, v740/750, v755, and v860. The `@paradoxlab/dat` package resolves the correct mapping via `getVersionFeatures`.
 
 #### 2. Layout
 

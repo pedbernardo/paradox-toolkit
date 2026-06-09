@@ -96,7 +96,7 @@ Este plano segue as convenções descritas em [docs/plans/README.md](../plans/RE
 
 ### Validação
 
-- `pnpm --filter @paradox/engine test:run` passa para `scheduler/scheduler.test.ts`
+- `pnpm --filter @paradoxlab/engine test:run` passa para `scheduler/scheduler.test.ts`
 - Dois eventos com mesmo `executeAt` e mesmo `priority` saem em ordem de inserção (sequence)
 - Dois eventos com mesmo `executeAt` e priorities diferentes saem na ordem correta de priority
 
@@ -123,7 +123,7 @@ Este plano segue as convenções descritas em [docs/plans/README.md](../plans/RE
 
 - Enqueue com `executeAt == simulationNow` durante dispatch lança `SchedulerReentranceError`
 - Enqueue com `executeAt > simulationNow` durante dispatch é aceito e processado no próximo drain
-- `pnpm --filter @paradox/engine test:run` passa para `scheduler/scheduler.test.ts`
+- `pnpm --filter @paradoxlab/engine test:run` passa para `scheduler/scheduler.test.ts`
 
 ---
 
@@ -148,5 +148,5 @@ Este plano segue as convenções descritas em [docs/plans/README.md](../plans/RE
 
 - Evento enfileirado antes de `increment(id)` é descartado no drain seguinte
 - Evento enfileirado após `increment(id)` é despachado normalmente
-- `pnpm --filter @paradox/engine test:run` passa para `scheduler/version-tag.test.ts`
+- `pnpm --filter @paradoxlab/engine test:run` passa para `scheduler/version-tag.test.ts`
 ```

@@ -55,26 +55,12 @@ Internal packages reference each other with `workspace:*`:
 
 ```json
 "dependencies": {
-  "@paradox/spr": "workspace:*",
-  "@paradox/dat": "workspace:*"
+  "@paradoxlab/spr": "workspace:*",
+  "@paradoxlab/dat": "workspace:*"
 }
 ```
 
-pnpm resolves this as a local symlink — no npm publish, no file copying. Changing `packages/spr/src/spr.ts` is immediately visible in `packages/spriter`, which depends on `@paradox/spr`.
-
-### Internal name vs. published name
-
-Packages use `@paradox/*` internally (for `workspace:*` references) and are published to npm as `@paradoxlab/*`. The `publishConfig.name` field in each `package.json` controls the publish name:
-
-```json
-{
-  "name": "@paradox/dat",
-  "publishConfig": {
-    "name": "@paradoxlab/dat",
-    "access": "public"
-  }
-}
-```
+pnpm resolves this as a local symlink — no npm publish, no file copying. Changing `packages/spr/src/spr.ts` is immediately visible in `packages/spriter`, which depends on `@paradoxlab/spr`.
 
 ---
 
@@ -96,16 +82,16 @@ Run at the root. Installs dependencies for all workspaces at once.
 
 ```bash
 # Production dependency
-pnpm add zod --filter @paradox/otbm
+pnpm add zod --filter @paradoxlab/otbm
 
 # Development dependency
-pnpm add -D @types/node --filter @paradox/spr
+pnpm add -D @types/node --filter @paradoxlab/spr
 
 # Multiple packages at once
-pnpm add -D vitest --filter @paradox/dat --filter @paradox/otb
+pnpm add -D vitest --filter @paradoxlab/dat --filter @paradoxlab/otb
 ```
 
-`--filter` accepts the `name` from `package.json` (`@paradox/dat`) or a relative path (`./packages/dat`).
+`--filter` accepts the `name` from `package.json` (`@paradoxlab/dat`) or a relative path (`./packages/dat`).
 
 ### Add a dependency at the monorepo root
 
@@ -125,8 +111,8 @@ When a dependency will be used across multiple packages, add it to the catalog i
 ### Remove a dependency
 
 ```bash
-pnpm remove sharp --filter @paradox/spriter
-pnpm remove -D @types/node --filter @paradox/spr
+pnpm remove sharp --filter @paradoxlab/spriter
+pnpm remove -D @types/node --filter @paradoxlab/spr
 ```
 
 ---
@@ -146,18 +132,18 @@ pnpm -r test:cov     # coverage for all packages
 ### In a specific workspace
 
 ```bash
-pnpm --filter @paradox/dat build
-pnpm --filter @paradox/otbm typecheck
-pnpm --filter @paradox/spr test:cov
+pnpm --filter @paradoxlab/dat build
+pnpm --filter @paradoxlab/otbm typecheck
+pnpm --filter @paradoxlab/spr test:cov
 ```
 
 ### In a workspace and its local dependencies
 
 ```bash
-pnpm --filter @paradox/spriter... build
+pnpm --filter @paradoxlab/spriter... build
 ```
 
-The `...` includes the packages that `@paradox/spriter` depends on (`@paradox/spr`). Useful when you want to guarantee the full chain is built.
+The `...` includes the packages that `@paradoxlab/spriter` depends on (`@paradoxlab/spr`). Useful when you want to guarantee the full chain is built.
 
 ### At the root (scripts from the root `package.json`)
 
@@ -186,21 +172,21 @@ Some packages have two additional scripts that are never run in CI.
 Packages that have a `tests/` directory (`dat`, `spr`, `otb`, `otbm`) expose a `test:local` script that runs `tests/**/*.local.ts` files via a separate vitest config. These tests require Tibia binary fixtures that are not committed to the repository.
 
 ```bash
-pnpm --filter @paradox/dat test:local
-pnpm --filter @paradox/spr test:local
-pnpm --filter @paradox/otb test:local
-pnpm --filter @paradox/otbm test:local
+pnpm --filter @paradoxlab/dat test:local
+pnpm --filter @paradoxlab/spr test:local
+pnpm --filter @paradoxlab/otb test:local
+pnpm --filter @paradoxlab/otbm test:local
 ```
 
 Tests that find no fixture file skip automatically (`it.skipIf` / `describe.skipIf`), so the command never fails outright — it just produces skipped tests for every missing file.
 
 ### `bench` — performance benchmarks
 
-`@paradox/spr` and `@paradox/otbm` expose a `bench` script that runs a standalone benchmark file with Node directly:
+`@paradoxlab/spr` and `@paradoxlab/otbm` expose a `bench` script that runs a standalone benchmark file with Node directly:
 
 ```bash
-pnpm --filter @paradox/spr bench
-pnpm --filter @paradox/otbm bench     # allocates up to 8 GB — large map files
+pnpm --filter @paradoxlab/spr bench
+pnpm --filter @paradoxlab/otbm bench     # allocates up to 8 GB — large map files
 ```
 
 Both commands also require fixture files to produce meaningful output. Without them the benchmark will either skip or error.
@@ -226,7 +212,7 @@ In pnpm, `node_modules` works differently from npm:
 pnpm outdated -r
 
 # Update a specific dependency in one package
-pnpm update sharp --filter @paradox/spriter
+pnpm update sharp --filter @paradoxlab/spriter
 
 # Update the catalog (edit pnpm-workspace.yaml, then run)
 pnpm install
@@ -305,7 +291,7 @@ git push
 
 ## Common troubleshooting
 
-### "Cannot find module '@paradox/spr'"
+### "Cannot find module '@paradoxlab/spr'"
 
 The symlink was not created. Run `pnpm install` at the root.
 
