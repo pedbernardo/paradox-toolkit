@@ -19,7 +19,8 @@ export function toItem(
   const name = otb?.attributes.name || nameMap[String(thing.cid)] || ''
 
   return {
-    id: thing.cid,
+    cid: thing.cid,
+    sid: otb?.sid ?? thing.cid,
     name,
     gameplay: {
       walkable: !(otb?.flags.unpassable ?? dat.unpassable === true),
@@ -87,7 +88,7 @@ export function toItem(
 export function toVisualOnly(thing: Thing): VisualOnlyDef {
   const dat = thing.flags
   return {
-    id: thing.cid,
+    cid: thing.cid,
     visual: {
       spriteIds: thing.spriteIds,
       layout: thing.layout,

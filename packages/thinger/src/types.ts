@@ -97,7 +97,8 @@ const ItemVisualSchema = Type.Object({
 })
 
 export const ItemContentDefSchema = Type.Object({
-  id: Type.Number(),
+  cid: Type.Number(),
+  sid: Type.Number(),
   name: Type.String(),
   gameplay: ItemGameplaySchema,
   visual: ItemVisualSchema
@@ -111,7 +112,7 @@ const VisualOnlyVisualSchema = Type.Object({
 })
 
 export const VisualOnlyDefSchema = Type.Object({
-  id: Type.Number(),
+  cid: Type.Number(),
   visual: VisualOnlyVisualSchema
 })
 export type VisualOnlyDef = Static<typeof VisualOnlyDefSchema>

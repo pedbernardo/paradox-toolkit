@@ -160,8 +160,8 @@ describe('Thinger - categorization', () => {
     expect(result.creatures).toHaveLength(1)
     expect(result.effects).toHaveLength(1)
     expect(result.missiles).toHaveLength(1)
-    expect(result.items[0]!.id).toBe(100)
-    expect(result.creatures[0]!.id).toBe(1)
+    expect(result.items[0]!.cid).toBe(100)
+    expect(result.creatures[0]!.cid).toBe(1)
   })
 
   it('visual-only entries have no gameplay field', () => {
@@ -172,9 +172,32 @@ describe('Thinger - categorization', () => {
 
     const [c] = creatures
     expect(c).toBeDefined()
-    expect(c!.id).toBe(1)
+    expect(c!.cid).toBe(1)
     expect('gameplay' in c!).toBe(false)
     expect(c!.visual.spriteIds).toEqual([1])
+  })
+})
+
+describe('Thinger - cid and sid fields', () => {
+  it('item cid comes from DAT thing.cid', () => {
+    const thing = makeThing(100)
+    const otbItem = makeOtbItem(100)
+    const { items } = Thinger({ dat: makeDatFile([thing]), otb: makeOtbFile([otbItem]) }).build()
+    expect(items[0]!.cid).toBe(100)
+  })
+
+  it('item sid comes from OtbItem.sid', () => {
+    const thing = makeThing(100)
+    const otbItem = makeOtbItem(100, { sid: 200 })
+    const { items } = Thinger({ dat: makeDatFile([thing]), otb: makeOtbFile([otbItem]) }).build()
+    expect(items[0]!.sid).toBe(200)
+  })
+
+  it('item sid falls back to cid when no OTB entry', () => {
+    const thing = makeThing(200)
+    const { items } = Thinger({ dat: makeDatFile([thing]), otb: makeOtbFile([]) }).build()
+    expect(items[0]!.sid).toBe(200)
+    expect(items[0]!.cid).toBe(200)
   })
 })
 
