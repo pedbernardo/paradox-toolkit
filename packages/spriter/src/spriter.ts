@@ -64,7 +64,7 @@ export function Spriter({ spr, maxWidth = DEFAULT_MAX_WIDTH }: SpritesheetInput)
       raw: { width, height, channels: 4 },
       limitInputPixels: false
     })
-      .png({ compressionLevel: 9, adaptiveFiltering: true, palette: true, effort: 10 })
+      .png({ compressionLevel: 9, adaptiveFiltering: true })
       .toBuffer()
 
     const meta = {
