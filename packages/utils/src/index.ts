@@ -26,3 +26,5 @@ export {
   isVersionSupported,
   getVersionFeatures
 } from './version-features.js'
+export { createOutputBuffer } from './output-buffer.js'
+export type { OutputBuffer, OutputBufferOptions } from './types.js'

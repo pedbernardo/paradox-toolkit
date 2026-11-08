@@ -1,5 +1,5 @@
-import { createEscapedBinaryWriter } from '@paradoxlab/utils'
-import type { EscapedBinaryWriter } from '@paradoxlab/utils'
+import { createOutputBuffer } from '@paradoxlab/utils'
+import type { OutputBuffer } from '@paradoxlab/utils'
 import { NODE_SPECIAL_BYTE, ROOT_NODE_ATTR, ITEM_GROUP, parseSchemaVersion } from './otb-config.js'
 import { flagsToInt } from './otb-flags.js'
 import { ITEM_ATTRIBUTE, encodeStr } from './otb-attributes.js'
@@ -10,7 +10,7 @@ export function serializeOtb(data: OtbWriteInput): Uint8Array {
   const { major, minor, build } = parseSchemaVersion(data.schemaVersion)
   validateWriteInput(data)
 
-  const writer = createEscapedBinaryWriter()
+  const writer = createOutputBuffer({ initialBytes: 1 << 16 })
 
   writer.bytes(new Uint8Array(4)) // magic
   writer.u8(NODE_SPECIAL_BYTE.START)
@@ -37,7 +37,7 @@ export function serializeOtb(data: OtbWriteInput): Uint8Array {
   }
 
   writer.u8(NODE_SPECIAL_BYTE.END) // root END
-  return writer.finish()
+  return writer.take()
 }
 
 function validateWriteInput(data: OtbWriteInput): void {
@@ -50,7 +50,7 @@ function validateWriteInput(data: OtbWriteInput): void {
   }
 }
 
-function writeAttrs(writer: EscapedBinaryWriter, item: OtbItem): void {
+function writeAttrs(writer: OutputBuffer, item: OtbItem): void {
   const a = item.attributes
 
   writer.u8(ITEM_ATTRIBUTE.SERVERID)
