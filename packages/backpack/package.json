@@ -1,6 +1,6 @@
 {
   "name": "@paradoxlab/backpack",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": false,
   "description": "Builds and loads Asset Packs for OTServer clients and editors: item content by sid, sprite atlases, composed frames.",
   "keywords": [
