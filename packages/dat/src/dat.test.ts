@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ParseError, UnsupportedVersionError } from '@paradoxlab/utils'
+import { ParseError, UnencodableTextError, UnsupportedVersionError } from '@paradoxlab/utils'
 import { Dat } from './dat.js'
 import { DAT_SIGNATURES } from './dat-config.js'
 import { getDatFlags } from './dat-flags.js'
@@ -34,12 +34,12 @@ function buildMinimalDat772(): Uint8Array {
 
 // Builds a DAT binary for version 960 with one item that has a MARKET flag.
 // MARKET payload: u16 category, u16 tradeAs, u16 showAs, u16 nameLen, bytes name, u16 restrictVocation, u16 requiredLevel
-function buildMarketDat960(): Uint8Array {
+function buildMarketDat960(
+  nameBytes: number[] = Array.from('Gold Coin').map((c) => c.charCodeAt(0))
+): Uint8Array {
   const sig = DAT_SIGNATURES[960]!
   const flags960 = getDatFlags(960)
   const marketByte = flags960['MARKET']!
-  const name = 'Gold Coin'
-  const nameBytes = Array.from(name).map((c) => c.charCodeAt(0))
 
   // item bytes: marketFlag + payload + 0xFF (end) + layout(7 bytes) + sprite(4 bytes u32)
   const payloadSize = 2 + 2 + 2 + 2 + nameBytes.length + 2 + 2 // 14 + nameLen bytes
@@ -349,6 +349,25 @@ describe('Dat - MARKET flag (9.6+)', () => {
       restrictVocation: 1,
       requiredLevel: 50
     })
+  })
+
+  it('decodes the market name as windows-1252 by default', () => {
+    const market = Dat(960)
+      .load(buildMarketDat960([0x41, 0x92, 0x73]))
+      .get('items', 100)?.flags.market
+    expect(market?.name).toBe('A’s')
+  })
+
+  it('writes back every byte of a market name, including 0x80-0x9F', () => {
+    const bytes = buildMarketDat960([0x41, 0x92, 0x80, 0x9d])
+    const dat = Dat(960)
+    expect(dat.write(dat.load(bytes))).toEqual(bytes)
+  })
+
+  it('refuses to write a market name windows-1252 cannot encode', () => {
+    const file = Dat(960).load(buildMarketDat960())
+    file.get('items', 100)!.flags.market!.name = 'łąka'
+    expect(() => Dat(960).write(file)).toThrow(UnencodableTextError)
   })
 
   it('MARKET: all six fields are populated', () => {
