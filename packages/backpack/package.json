@@ -52,13 +52,13 @@
     "bench:pack": "node --import tsx/esm bench/pack.bench.ts"
   },
   "dependencies": {
-    "@paradoxlab/appearance": "workspace:*",
     "@paradoxlab/dat": "workspace:*",
     "@paradoxlab/otb": "workspace:*",
     "@paradoxlab/spr": "workspace:*",
     "commander": "catalog:"
   },
   "devDependencies": {
+    "@paradoxlab/appearance": "workspace:*",
     "@paradoxlab/fixtures": "workspace:*",
     "@paradoxlab/otbm": "workspace:*",
     "@types/node": "catalog:",
