@@ -1,13 +1,13 @@
 import { BufferOverflowError, ByteNotFoundError } from './errors.js'
-
-const textDecoderLatin1 = new TextDecoder('latin1')
-const textDecoderUtf8 = new TextDecoder('utf-8')
+import { windows1252 } from './text-codec.js'
+import type { EscapedReaderOptions, TextCodec, TextOptions } from './types.js'
 
 export type BinaryReader = {
   u8(): number
   u16(): number
   u32(): number
-  str(n: number, encoding?: string): string
+  /** Reads `n` bytes and decodes them with the reader's text codec. */
+  str(n: number): string
   bytes(n: number): Uint8Array
   u16arr(n: number): number[]
   skip(n: number): void
@@ -20,15 +20,6 @@ export type BinaryReader = {
   readonly byteLength: number
 }
 
-function resolveDecoder(encoding?: string): TextDecoder {
-  if (encoding === 'latin1' || !encoding) {
-    return textDecoderLatin1
-  } else if (encoding === 'utf-8') {
-    return textDecoderUtf8
-  }
-  return new TextDecoder(encoding)
-}
-
 function toDataView(source: ArrayBuffer | Uint8Array): DataView {
   if (source instanceof Uint8Array) {
     return new DataView(source.buffer, source.byteOffset, source.byteLength)
@@ -36,7 +27,7 @@ function toDataView(source: ArrayBuffer | Uint8Array): DataView {
   return new DataView(source)
 }
 
-function buildReaderCore(view: DataView): BinaryReader {
+function buildReaderCore(view: DataView, text: TextCodec): BinaryReader {
   let cursor = 0
 
   return {
@@ -77,14 +68,13 @@ function buildReaderCore(view: DataView): BinaryReader {
       return val
     },
 
-    str(n, encoding) {
+    str(n) {
       if (cursor + n > view.byteLength) {
         throw new BufferOverflowError(`str(${n}) overflow at offset=${cursor}`)
       }
       const slice = new Uint8Array(view.buffer, view.byteOffset + cursor, n)
       cursor += n
-      const decoder = resolveDecoder(encoding)
-      return decoder.decode(slice)
+      return text.decode(slice)
     },
 
     bytes(n) {
@@ -155,8 +145,11 @@ function buildReaderCore(view: DataView): BinaryReader {
   }
 }
 
-export function createBinaryReader(source: ArrayBuffer | Uint8Array): BinaryReader {
-  return buildReaderCore(toDataView(source))
+export function createBinaryReader(
+  source: ArrayBuffer | Uint8Array,
+  options: TextOptions = {}
+): BinaryReader {
+  return buildReaderCore(toDataView(source), options.text ?? windows1252)
 }
 
 export type EscapedBinaryReader = BinaryReader & {
@@ -164,7 +157,8 @@ export type EscapedBinaryReader = BinaryReader & {
   escU16(): number
   escU32(): number
   escU64(): number
-  escStr(n: number, encoding?: string): string
+  /** Reads `n` escaped bytes and decodes them with the reader's text codec. */
+  escStr(n: number): string
   escBytes(n: number): Uint8Array
   seekNodeBoundary(targets: readonly number[]): number
 }
@@ -200,10 +194,13 @@ export type EscapedSliceReader = {
  */
 export function createEscapedSliceReader(
   bytes: Uint8Array,
-  escapeMarker = 0xfd
+  options: EscapedReaderOptions = {}
 ): EscapedSliceReader {
+  const escapeMarker = options.escapeMarker ?? 0xfd
+  const text = options.text ?? windows1252
   let i = 0
   let windowEnd = bytes.length
+  let scratch = new Uint8Array(256)
 
   function readEscapedByte(): number {
     if (i >= windowEnd) throw new BufferOverflowError(`read overflow at offset=${i}`)
@@ -243,11 +240,9 @@ export function createEscapedSliceReader(
     },
 
     str(len: number): string {
-      let s = ''
-      for (let j = 0; j < len; j++) {
-        s += String.fromCharCode(readEscapedByte())
-      }
-      return s
+      if (len > scratch.length) scratch = new Uint8Array(Math.max(len, scratch.length * 2))
+      for (let j = 0; j < len; j++) scratch[j] = readEscapedByte()
+      return text.decode(scratch.subarray(0, len))
     },
 
     skip(n: number): void {
@@ -260,9 +255,11 @@ export function createEscapedSliceReader(
 
 export function createEscapedBinaryReader(
   source: ArrayBuffer | Uint8Array,
-  escapeMarker = 0xfd
+  options: EscapedReaderOptions = {}
 ): EscapedBinaryReader {
-  const base = createBinaryReader(source)
+  const escapeMarker = options.escapeMarker ?? 0xfd
+  const text = options.text ?? windows1252
+  const base = createBinaryReader(source, { text })
 
   function readEscapedByte(): number {
     const b = base.u8()
@@ -282,9 +279,7 @@ export function createEscapedBinaryReader(
     u8: () => base.u8(),
     u16: () => base.u16(),
     u32: () => base.u32(),
-    str(n, encoding) {
-      return base.str(n, encoding)
-    },
+    str: (n) => base.str(n),
     bytes: (n) => base.bytes(n),
     u16arr: (n) => base.u16arr(n),
     skip: (n) => base.skip(n),
@@ -309,13 +304,12 @@ export function createEscapedBinaryReader(
       return (b0 | (b1 << 8) | (b2 << 16) | (b3 << 24)) >>> 0
     },
 
-    escStr(n, encoding) {
+    escStr(n) {
       const buf = new Uint8Array(n)
       for (let i = 0; i < n; i++) {
         buf[i] = readEscapedByte()
       }
-      const decoder = resolveDecoder(encoding)
-      return decoder.decode(buf)
+      return text.decode(buf)
     },
 
     escU64() {

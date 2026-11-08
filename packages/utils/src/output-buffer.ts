@@ -1,4 +1,5 @@
-import type { OutputBuffer, OutputBufferOptions } from './types.js'
+import { windows1252 } from './text-codec.js'
+import type { OutputBuffer, OutputBufferOptions, TextCodec } from './types.js'
 
 const ESCAPE = 0xfd
 const DEFAULT_INITIAL_BYTES = 1 << 20
@@ -6,9 +7,11 @@ const DEFAULT_INITIAL_BYTES = 1 << 20
 class GrowingOutputBuffer implements OutputBuffer {
   #buf: Uint8Array
   #len = 0
+  readonly #text: TextCodec
 
-  constructor(initialBytes: number) {
+  constructor(initialBytes: number, text: TextCodec) {
     this.#buf = new Uint8Array(Math.max(16, initialBytes))
+    this.#text = text
   }
 
   get length(): number {
@@ -84,6 +87,12 @@ class GrowingOutputBuffer implements OutputBuffer {
     for (let i = 0; i < value.length; i++) this.#esc(value[i]!)
   }
 
+  escStr(value: string): void {
+    const encoded = this.#text.encode(value)
+    this.escU16(encoded.length)
+    this.escBytes(encoded)
+  }
+
   mark(): number {
     return this.#len
   }
@@ -110,5 +119,8 @@ class GrowingOutputBuffer implements OutputBuffer {
 
 /** Creates an `OutputBuffer` (see its type for the contract). */
 export function createOutputBuffer(options: OutputBufferOptions = {}): OutputBuffer {
-  return new GrowingOutputBuffer(options.initialBytes ?? DEFAULT_INITIAL_BYTES)
+  return new GrowingOutputBuffer(
+    options.initialBytes ?? DEFAULT_INITIAL_BYTES,
+    options.text ?? windows1252
+  )
 }

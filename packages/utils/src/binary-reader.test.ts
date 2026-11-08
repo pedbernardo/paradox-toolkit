@@ -7,6 +7,7 @@ import {
   createEscapedSliceReader
 } from './binary-reader.js'
 import { BufferOverflowError, ByteNotFoundError } from './errors.js'
+import { utf8, windows1250 } from './text-codec.js'
 
 describe('createBinaryReader', () => {
   describe('u8', () => {
@@ -87,10 +88,15 @@ describe('createBinaryReader', () => {
       expect(r.str(5)).toBe('Hello')
     })
 
-    it('reads with explicit encoding', () => {
-      const bytes = new TextEncoder().encode('Hello')
-      const r = createBinaryReader(bytes.buffer)
-      expect(r.str(5, 'utf-8')).toBe('Hello')
+    it('decodes with the reader text codec', () => {
+      const bytes = new TextEncoder().encode('ação')
+      const r = createBinaryReader(bytes.buffer, { text: utf8 })
+      expect(r.str(bytes.length)).toBe('ação')
+    })
+
+    it('decodes windows-1252 by default', () => {
+      const r = createBinaryReader(new Uint8Array([0x69, 0x74, 0x92, 0x73]).buffer)
+      expect(r.str(4)).toBe('it’s')
     })
 
     it('advances cursor by n', () => {
@@ -476,10 +482,10 @@ describe('createEscapedBinaryReader', () => {
       expect(r.escStr(2)).toBe('AB')
     })
 
-    it('supports explicit encoding', () => {
-      const buf = new Uint8Array([72, 101, 108, 108, 111])
-      const r = createEscapedBinaryReader(buf.buffer)
-      expect(r.escStr(5, 'utf-8')).toBe('Hello')
+    it('decodes with the reader text codec', () => {
+      const buf = new Uint8Array([0xb3, 0xb9])
+      const r = createEscapedBinaryReader(buf.buffer, { text: windows1250 })
+      expect(r.escStr(2)).toBe('łą')
     })
   })
 
@@ -538,12 +544,14 @@ describe('createEscapedBinaryReader', () => {
 
   describe('custom escapeMarker', () => {
     it('uses the custom marker instead of 0xFD', () => {
-      const r = createEscapedBinaryReader(new Uint8Array([0xee, 0x42]).buffer, 0xee)
+      const r = createEscapedBinaryReader(new Uint8Array([0xee, 0x42]).buffer, {
+        escapeMarker: 0xee
+      })
       expect(r.escU8()).toBe(0x42)
     })
 
     it('does not treat 0xFD as escape when marker is custom', () => {
-      const r = createEscapedBinaryReader(new Uint8Array([0xfd]).buffer, 0xee)
+      const r = createEscapedBinaryReader(new Uint8Array([0xfd]).buffer, { escapeMarker: 0xee })
       expect(r.escU8()).toBe(0xfd)
     })
   })
@@ -765,7 +773,7 @@ describe('createEscapedSliceReader', () => {
 
   it('custom escapeMarker: default 0xFD byte is not treated as escape', () => {
     const buf = new Uint8Array([0xfd, 0x10])
-    const r = createEscapedSliceReader(buf, 0xee)
+    const r = createEscapedSliceReader(buf, { escapeMarker: 0xee })
     r.seekWindow(0, 2)
     expect(r.u8()).toBe(0xfd)
     expect(r.u8()).toBe(0x10)
@@ -773,7 +781,7 @@ describe('createEscapedSliceReader', () => {
 
   it('custom escapeMarker is skipped when it appears', () => {
     const buf = new Uint8Array([0xee, 0xfd])
-    const r = createEscapedSliceReader(buf, 0xee)
+    const r = createEscapedSliceReader(buf, { escapeMarker: 0xee })
     r.seekWindow(0, 2)
     expect(r.u8()).toBe(0xfd)
   })

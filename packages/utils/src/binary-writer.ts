@@ -1,4 +1,5 @@
-const DEFAULT_ESCAPE_MARKER = 0xfd
+import { windows1252 } from './text-codec.js'
+import type { TextOptions } from './types.js'
 
 export type BinaryWriter = {
   u8(v: number): void
@@ -10,16 +11,8 @@ export type BinaryWriter = {
   readonly length: number
 }
 
-export type EscapedBinaryWriter = BinaryWriter & {
-  escU8(v: number): void
-  escU16(v: number): void
-  escU32(v: number): void
-  escU64(v: number): void
-  escStr(s: string): void
-  escBytes(b: Uint8Array): void
-}
-
-export function createBinaryWriter(): BinaryWriter {
+export function createBinaryWriter(options: TextOptions = {}): BinaryWriter {
+  const text = options.text ?? windows1252
   let buf = new Uint8Array(65536)
   let len = 0
 
@@ -57,13 +50,12 @@ export function createBinaryWriter(): BinaryWriter {
     },
 
     str(s: string): void {
-      const sLen = s.length
-      ensure(2 + sLen)
-      buf[len++] = sLen & 0xff
-      buf[len++] = (sLen >> 8) & 0xff
-      for (let i = 0; i < sLen; i++) {
-        buf[len++] = s.charCodeAt(i) & 0xff
-      }
+      const encoded = text.encode(s)
+      ensure(2 + encoded.length)
+      buf[len++] = encoded.length & 0xff
+      buf[len++] = (encoded.length >> 8) & 0xff
+      buf.set(encoded, len)
+      len += encoded.length
     },
 
     bytes(b: Uint8Array): void {
@@ -74,75 +66,6 @@ export function createBinaryWriter(): BinaryWriter {
 
     finish(): Uint8Array {
       return buf.slice(0, len)
-    }
-  }
-}
-
-export function createEscapedBinaryWriter(
-  escapeMarker = DEFAULT_ESCAPE_MARKER
-): EscapedBinaryWriter {
-  const base = createBinaryWriter()
-
-  function writeEscapedByte(b: number): void {
-    const byte = b & 0xff
-    if (byte >= escapeMarker) base.u8(escapeMarker)
-    base.u8(byte)
-  }
-
-  return {
-    get length() {
-      return base.length
-    },
-
-    u8: (v) => base.u8(v),
-    u16: (v) => base.u16(v),
-    u32: (v) => base.u32(v),
-    str: (s) => base.str(s),
-    bytes: (b) => base.bytes(b),
-    finish: () => base.finish(),
-
-    escU8(v: number): void {
-      writeEscapedByte(v)
-    },
-
-    escU16(v: number): void {
-      writeEscapedByte(v & 0xff)
-      writeEscapedByte((v >> 8) & 0xff)
-    },
-
-    escU32(v: number): void {
-      writeEscapedByte(v & 0xff)
-      writeEscapedByte((v >> 8) & 0xff)
-      writeEscapedByte((v >> 16) & 0xff)
-      writeEscapedByte((v >>> 24) & 0xff)
-    },
-
-    escU64(v: number): void {
-      const lo = v >>> 0
-      const hi = Math.floor(v / 0x100000000) >>> 0
-      writeEscapedByte(lo & 0xff)
-      writeEscapedByte((lo >> 8) & 0xff)
-      writeEscapedByte((lo >> 16) & 0xff)
-      writeEscapedByte((lo >>> 24) & 0xff)
-      writeEscapedByte(hi & 0xff)
-      writeEscapedByte((hi >> 8) & 0xff)
-      writeEscapedByte((hi >> 16) & 0xff)
-      writeEscapedByte((hi >>> 24) & 0xff)
-    },
-
-    escStr(s: string): void {
-      const sLen = s.length
-      writeEscapedByte(sLen & 0xff)
-      writeEscapedByte((sLen >> 8) & 0xff)
-      for (let i = 0; i < sLen; i++) {
-        writeEscapedByte(s.charCodeAt(i) & 0xff)
-      }
-    },
-
-    escBytes(b: Uint8Array): void {
-      for (let i = 0; i < b.length; i++) {
-        writeEscapedByte(b[i]!)
-      }
     }
   }
 }
