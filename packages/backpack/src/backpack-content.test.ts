@@ -1,13 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import type { DatFile, Thing, ThingFlags } from '@paradoxlab/dat'
 import type { OtbFile, OtbItem, OtbItemFlags } from '@paradoxlab/otb'
-import {
-  AppearanceFlag,
-  FloorChange,
-  ItemFlag,
-  StackOrder,
-  buildContent
-} from './backpack-content.js'
+import { AppearanceFlag, FloorChange, ItemFlag, StackOrder } from './backpack-flags.js'
+import { buildContent } from './backpack-content.js'
 
 const layout = {
   width: 1,

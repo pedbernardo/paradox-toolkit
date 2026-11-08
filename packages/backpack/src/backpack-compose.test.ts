@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { spriteIndex } from '@paradoxlab/appearance'
 import type { Sprite, SprFile } from '@paradoxlab/spr'
 import { composeAppearances, composeLayers } from './backpack-compose.js'
-import { StackOrder } from './backpack-content.js'
+import { StackOrder } from './backpack-flags.js'
 import type { AppearanceColumns } from './types.js'
 
 const PIXELS = 32 * 32

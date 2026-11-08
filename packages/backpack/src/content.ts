@@ -1,11 +1,5 @@
-export {
-  AppearanceFlag,
-  CONTENT_SCHEMA,
-  FloorChange,
-  ItemFlag,
-  StackOrder,
-  buildContent
-} from './backpack-content.js'
+export { AppearanceFlag, FloorChange, ItemFlag, StackOrder } from './backpack-flags.js'
+export { CONTENT_SCHEMA, buildContent } from './backpack-content.js'
 export { viewContent } from './backpack-views.js'
 export type {
   AppearanceColumns,

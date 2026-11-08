@@ -1,5 +1,5 @@
 import type { SprFile } from '@paradoxlab/spr'
-import { StackOrder } from './backpack-content.js'
+import { StackOrder } from './backpack-flags.js'
 import type {
   AppearanceColumns,
   AtlasImage,

@@ -2,7 +2,7 @@ import { deflateSync } from 'node:zlib'
 import { describe, expect, it } from 'vitest'
 import { readPng } from '../tests/support/png-reader.js'
 import { syntheticDat, syntheticOtb, syntheticSpr } from '../tests/support/synthetic-client.js'
-import { StackOrder } from './backpack-content.js'
+import { StackOrder } from './backpack-flags.js'
 import { buildPack } from './backpack-pack.js'
 
 const deflate = (data: Uint8Array) => deflateSync(data)

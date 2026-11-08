@@ -1,5 +1,5 @@
 import { spriteIndex, stackablePatterns } from '@paradoxlab/appearance'
-import { ItemFlag } from '@paradoxlab/backpack'
+import { ItemFlag } from '@paradoxlab/backpack/load'
 import type { AssetPack } from '@paradoxlab/backpack/load'
 
 export type DrawCall = {

@@ -1,11 +1,5 @@
-export {
-  AppearanceFlag,
-  CONTENT_SCHEMA,
-  FloorChange,
-  ItemFlag,
-  StackOrder,
-  buildContent
-} from './backpack-content.js'
+export { AppearanceFlag, FloorChange, ItemFlag, StackOrder } from './backpack-flags.js'
+export { CONTENT_SCHEMA, buildContent } from './backpack-content.js'
 export { SPRITE_SHEET_SCHEMA, buildSpriteSheet, extractSprites } from './backpack-sprites.js'
 export { deflateWeb, encodePng } from './backpack-png.js'
 export { viewContent, viewFrames } from './backpack-views.js'

@@ -1,3 +1,4 @@
+export { AppearanceFlag, FloorChange, ItemFlag, StackOrder } from './backpack-flags.js'
 export { PACK_SCHEMA, checkCompatibility, loadPack, urlReader } from './backpack-load.js'
 export type {
   AppearanceLayout,

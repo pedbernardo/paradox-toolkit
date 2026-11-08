@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path'
 import { deflateSync } from 'node:zlib'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { syntheticDat, syntheticOtb, syntheticSpr } from '../tests/support/synthetic-client.js'
-import { ItemFlag } from './backpack-content.js'
+import { ItemFlag } from './backpack-flags.js'
 import { checkCompatibility, loadPack, urlReader } from './backpack-load.js'
 import { buildPack } from './backpack-pack.js'
 import type { AssetPackFiles, PackManifest, PackReader } from './types.js'
@@ -153,5 +153,16 @@ describe('the /load entry', () => {
     }
     visit(join(import.meta.dirname, 'load.ts'))
     expect(seen.size).toBeGreaterThan(2)
+    // The content builder carries the name map; a page that only loads packs must not pull it in.
+    expect([...seen].some((file) => file.endsWith('backpack-content.ts'))).toBe(false)
+  })
+
+  it('exposes the constants that read a loaded pack', async () => {
+    const load = await import('./load.js')
+    const content = await import('./content.js')
+    expect(load.ItemFlag).toBe(content.ItemFlag)
+    expect(load.FloorChange).toBe(content.FloorChange)
+    expect(load.StackOrder).toBe(content.StackOrder)
+    expect(load.AppearanceFlag).toBe(content.AppearanceFlag)
   })
 })
