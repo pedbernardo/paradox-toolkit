@@ -1,5 +1,5 @@
-import { createEscapedBinaryWriter } from '@paradoxlab/utils'
-import type { EscapedBinaryWriter } from '@paradoxlab/utils'
+import { createOutputBuffer } from '@paradoxlab/utils'
+import type { OutputBuffer } from '@paradoxlab/utils'
 import { NODE_SPECIAL_BYTE, OTBM_ATTRIBUTE, OTBM_NODE_TYPE } from './otbm-config.js'
 import type {
   OtbmItem,
@@ -41,7 +41,7 @@ function isCompact(item: OtbmItem): boolean {
 // Writes a complete ITEM node (0xFE 0x06 ... 0xFF). Used for non-compact tile items
 // and for all item children - the 0x09 inline-item tile attribute is only valid in
 // tile props context, never inside another ITEM node.
-function writeItemNode(w: EscapedBinaryWriter, item: OtbmItem): void {
+function writeItemNode(w: OutputBuffer, item: OtbmItem): void {
   validateSid(item.sid)
 
   w.u8(START)
@@ -106,7 +106,7 @@ function writeItemNode(w: EscapedBinaryWriter, item: OtbmItem): void {
   w.u8(END)
 }
 
-function serializeTile(w: EscapedBinaryWriter, tile: OtbmTile, area: OtbmTileArea): void {
+function serializeTile(w: OutputBuffer, tile: OtbmTile, area: OtbmTileArea): void {
   const offsetX = tile.x - area.baseX
   const offsetY = tile.y - area.baseY
 
@@ -153,7 +153,7 @@ function serializeTile(w: EscapedBinaryWriter, tile: OtbmTile, area: OtbmTileAre
   w.u8(END)
 }
 
-function serializeTown(w: EscapedBinaryWriter, town: OtbmTown): void {
+function serializeTown(w: OutputBuffer, town: OtbmTown): void {
   w.u8(START)
   w.u8(OTBM_NODE_TYPE.TOWN)
   w.escU32(town.id)
@@ -164,7 +164,7 @@ function serializeTown(w: EscapedBinaryWriter, town: OtbmTown): void {
   w.u8(END)
 }
 
-function serializeWaypoint(w: EscapedBinaryWriter, wp: OtbmWaypoint): void {
+function serializeWaypoint(w: OutputBuffer, wp: OtbmWaypoint): void {
   w.u8(START)
   w.u8(OTBM_NODE_TYPE.WAYPOINT)
   w.escStr(wp.name)
@@ -175,7 +175,7 @@ function serializeWaypoint(w: EscapedBinaryWriter, wp: OtbmWaypoint): void {
 }
 
 function serializeHeaderChunk(data: OtbmWriteInput): Uint8Array {
-  const w = createEscapedBinaryWriter()
+  const w = createOutputBuffer({ initialBytes: 1 << 16 })
 
   w.u32(0) // magic
 
@@ -190,11 +190,11 @@ function serializeHeaderChunk(data: OtbmWriteInput): Uint8Array {
   w.u8(START)
   w.u8(OTBM_NODE_TYPE.MAP_DATA)
 
-  return w.finish()
+  return w.take()
 }
 
 function serializeAreaChunk(area: OtbmTileArea): Uint8Array {
-  const w = createEscapedBinaryWriter()
+  const w = createOutputBuffer({ initialBytes: 1 << 16 })
 
   w.u8(START)
   w.u8(OTBM_NODE_TYPE.TILE_AREA)
@@ -207,11 +207,11 @@ function serializeAreaChunk(area: OtbmTileArea): Uint8Array {
   }
 
   w.u8(END)
-  return w.finish()
+  return w.take()
 }
 
 function serializeFooterChunk(data: OtbmWriteInput): Uint8Array {
-  const w = createEscapedBinaryWriter()
+  const w = createOutputBuffer({ initialBytes: 1 << 16 })
 
   w.u8(START)
   w.u8(OTBM_NODE_TYPE.TOWNS)
@@ -230,7 +230,7 @@ function serializeFooterChunk(data: OtbmWriteInput): Uint8Array {
   w.u8(END) // END MAP_DATA
   w.u8(END) // END WORLD_NODE
 
-  return w.finish()
+  return w.take()
 }
 
 export function serializeOtbm(
