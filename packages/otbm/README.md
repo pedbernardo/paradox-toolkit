@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@paradoxlab/otbm.svg)](https://www.npmjs.com/package/@paradoxlab/otbm)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](../../LICENSE)
 
-Parser and writer for OTServers `.otbm` binary map format. Reads tile areas, towns, waypoints, and map metadata from TFS-compatible map files.
+Lossless reader and writer for the OTServer `.otbm` map format, OTBM v1 to v4. Reading a map and writing it back gives the same bytes, malformed maps included; the 104 MB map used as a stress test is read in about 0.7 s and copied in about 1.4 s in Node.
 
 ## Installation
 
@@ -11,103 +11,101 @@ Parser and writer for OTServers `.otbm` binary map format. Reads tile areas, tow
 npm install @paradoxlab/otbm
 ```
 
-## How to Use
+## How it works
+
+The reader reports a map as **OTBM events** in file order (header, areas, tiles, items, towns…), carrying everything needed to write it back: inline vs node items, attribute order, unknown attributes and nodes, trailing bytes. The writer consumes the same events. Everything else is built on that pair:
+
+| You want to | Use | Memory |
+|---|---|---|
+| Inspect or index a map of any size | `otbm.read(bytes, visitor)` | nothing per tile |
+| Copy or convert a map | `otbm.writeStream(upgradeOtbm(otbm.source(bytes), 3))` | about one 1 MB chunk |
+| Edit a small or medium map as objects | `otbm.load(bytes)`, edit, `otbm.write(document)` | an object per tile and item |
+| Save your own editable model in the original layout | `collectSourceLayout` + `composeOtbm` | the layout: 2 bytes per tile |
+
+The examples below are in [`examples/`](../../examples/src) and run in CI.
+
+## Read with a visitor
 
 ```ts
-import { readFileSync, writeFileSync } from 'node:fs'
 import { Otbm } from '@paradoxlab/otbm'
 
-// Parse
-const file = Otbm().load(readFileSync('world.otbm'))
-
-// Access header
-const { version, width, height, description } = file.header
-console.log(`${width}x${height} map - ${description}`)
-
-// Look up a tile
-const tile = file.getTile(100, 200, 7)
-// → { pos: { x: 100, y: 200, z: 7 }, ground: 4526, items: [...] } | undefined
-
-// Iterate tile areas
-for (const area of file.areas) {
-  for (const tile of area.tiles) {
-    console.log(tile.pos.x, tile.pos.y, tile.pos.z, tile.ground)
+const stats = { tiles: 0, houseTiles: 0, items: 0, towns: [] as string[] }
+Otbm().read(bytes, {
+  tile: (_x, _y, _z, _flags, houseId) => {
+    stats.tiles++
+    if (houseId !== null) stats.houseTiles++
+  },
+  item: () => {
+    stats.items++
+  },
+  town: (town) => {
+    stats.towns.push(town.name)
   }
-}
-
-// Towns and waypoints
-for (const town of file.towns) {
-  console.log(town.id, town.name, town.templePos)
-}
-for (const wp of file.waypoints) {
-  console.log(wp.name, wp.pos)
-}
-
-// Write back to binary (round-trip)
-writeFileSync('out.otbm', Otbm().write(file))
-
-// Validate without loading
-const result = Otbm().validate(readFileSync('world.otbm'))
-// → { ok: true } | { ok: false, error: string }
+})
 ```
 
-## API
+Every visitor method is optional. `tile` and `item` take positional arguments so reading allocates nothing for a tile or an item without attributes.
 
-### `Otbm(opts?: OtbmOptions)`
-
-Factory returning `{ load, write, validate }`.
+**OTBM v1** stores counts as an untagged byte that only the item database can identify; pass the predicate from `@paradoxlab/otb`:
 
 ```ts
-type OtbmOptions = {
-  mapVersion?: number  // override auto-detected map version
+import { Otb, inlineCountOf } from '@paradoxlab/otb'
+
+const otbm = Otbm({ hasInlineCount: inlineCountOf(Otb().load(itemsOtbBytes)) })
+```
+
+## Convert in streaming
+
+```ts
+import { Otbm, upgradeOtbm } from '@paradoxlab/otbm'
+
+const otbm = Otbm(options)
+for (const chunk of otbm.writeStream(upgradeOtbm(otbm.source(bytes), 3))) {
+  await file.write(chunk)
 }
 ```
 
-### `.load(buffer: ArrayBuffer | Uint8Array): OtbmFile`
+`writeStream` pulls the source one tile area at a time and hands out chunks of about `chunkBytes` (1 MB by default), so the writer never holds the whole file. Only upgrades exist (v1 → v2 → v3): a downgrade would lose data.
 
-Parse an `.otbm` binary. Throws `ParseError` on malformed input.
+## Edit as objects
 
-### `.write(data: OtbmWriteInput): Uint8Array`
+```ts
+const otbm = Otbm()
+const document = otbm.load(bytes)
+const tile = document.getTile(256, 257, 7)
+// edit tile.items, document.entries, document.header…
+const out = otbm.write(document) // unchanged parts keep their bytes
+```
 
-Serialize an `OtbmFile` (or compatible object) back to binary.
+`load` keeps an object per tile and item: a 12 MB map takes about 450 MB of heap, a 79 MB one about 3 GB. For large maps, use `read` and your own model.
 
-### `.writeStream(data: OtbmWriteInput, opts?: OtbmWriteOpts): AsyncIterable<Uint8Array>`
+## Save your own model in the original layout
 
-Streaming variant of `.write()`. Yields the output as an array of `Uint8Array` chunks suitable for piping to a writable stream.
+```ts
+import { Otbm, collectSourceLayout, composeOtbm } from '@paradoxlab/otbm'
 
-> **Note:** the full serialization is performed synchronously before the first yield — memory usage at peak is equivalent to `.write()`. The chunk-by-chunk delivery is useful for progressive writes (e.g., piping to `fs.createWriteStream`), but does not reduce peak memory allocation.
->
-> TODO: implement incremental serialization (generate and yield each area without full upfront accumulation)
+const layout = collectSourceLayout()
+otbm.read(bytes, [layout.visitor, loadIntoMyModel]) // one pass, several visitors
+// … edit the model …
+const out = otbm.write(composeOtbm(layout.layout(), myModelAsTileSource))
+```
 
-### `.validate(buffer: ArrayBuffer | Uint8Array): { ok: boolean; error?: string }`
+The composer writes areas and tiles in their original order (an unedited map comes back byte for byte), skips deleted tiles, and puts new tiles in canonical 256×256 areas after the original ones. Your model implements `OtbmTileSource`: `hasTile`, `emitTile` and `forEachTile`. See [`examples/src/otbm-compose.ts`](../../examples/src/otbm-compose.ts).
 
-Validate the root node marker and header version without parsing areas.
+## Strings
 
-### `OtbmFile`
+Strings are read with a text codec, windows-1252 by default; maps written in Polish, Russian or UTF-8 need `windows1250`, `windows1251` or `utf8` from `@paradoxlab/utils`. Every built-in codec gives back the original bytes of an unedited string, and writing a character the codec cannot represent throws `UnencodableTextError`. `detectTextCodec` suggests a codec from a map's strings ([example](../../examples/src/otbm-detect-codec.ts)).
 
-| Property | Type | Description |
-|---|---|---|
-| `header` | `OtbmHeader` | `{ version, width, height, itemsMajorVersion, itemsMinorVersion, description }` |
-| `areas` | `OtbmArea[]` | Tile areas (16×16 blocks with a base position) |
-| `towns` | `OtbmTown[]` | `{ id, name, templePos: { x, y, z } }` |
-| `waypoints` | `OtbmWaypoint[]` | `{ name, pos: { x, y, z } }` |
-| `.getTile(x, y, z)` | `OtbmTile \| undefined` | Look up a tile by world position |
+## Diagnostics and ceilings
 
-### `OtbmTile`
+Structure the reader does not expect is kept, never repaired: an unknown node, a tile outside an area or bytes after the root are written back as they were. Each kind is reported once, after reading, through the visitor's `diagnostic` event (`{ code, offset, count, message }`).
 
-| Property | Type | Description |
-|---|---|---|
-| `pos` | `{ x, y, z }` | World position |
-| `ground` | `number \| undefined` | Ground item server ID |
-| `flags` | `OtbmTileFlags` | `protectionZone`, `noLogout`, `pvpZone`, ... |
-| `items` | `OtbmItem[]` | Items stacked on the tile |
+Ceilings stop corrupt or hostile files with a `ParseError`: file size (3× the largest known map), items per tile, items per container, nesting and property bytes per node. They are in `DEFAULT_OTBM_LIMITS` and can be changed with `Otbm({ limits })`.
 
-## Format Notes
+## Compare
 
-- Like OTB, OTBM uses an escaped binary tree: node boundaries are `0xFE` (start) and `0xFF` (end); `0xFD` escapes reserved bytes within data.
-- Tile positions are stored relative to each area's base position (the area header stores the base `x, y, z`, individual tiles store `dx, dy` offsets). `getTile()` reconstructs absolute positions transparently.
-- Map versions differ in which node types and attribute IDs are supported. The parser reads the version from the root header and adjusts accordingly.
+`compareOtbm(a, b)` lists what two loaded maps mean differently, ignoring how they are stored: inline vs node items, attribute order, area layout. Useful in tests of tools that edit maps.
 
----
+## Performance
 
-[← Back to paradox-toolkit](../../README.md)
+Numbers, method and the history of the reader are in [`results/perf.md`](results/perf.md). Run them with `pnpm --filter @paradoxlab/otbm bench` (needs the local fixtures).

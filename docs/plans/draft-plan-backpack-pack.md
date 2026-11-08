@@ -8,7 +8,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 - [CONTEXT.md](../../CONTEXT.md)
 - [ADR 0003 - `@paradoxlab/backpack` generates Asset Packs](../adr/0003-backpack-absorbs-thinger-and-spriter.md)
 - [ADR 0004 - Asset Pack format](../adr/0004-asset-pack-format.md)
-- [draft-plan-appearance.md](draft-plan-appearance.md) and [draft-plan-backpack-content-sprites.md](draft-plan-backpack-content-sprites.md) (prerequisites)
+- [03-plan-appearance.md](03-plan-appearance.md) and [draft-plan-backpack-content-sprites.md](draft-plan-backpack-content-sprites.md) (prerequisites)
 - `../mapeditor/docs/research/spike-s4.md` (pack contents, coverage, compatibility cases, sizes and timings)
 - `../mapeditor/spikes/s4-asset-pack/src/{build/compose.ts,build/build-pack.ts,load.ts,validate.ts,compat.ts}`
 

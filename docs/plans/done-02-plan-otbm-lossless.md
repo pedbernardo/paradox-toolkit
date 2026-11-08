@@ -21,8 +21,36 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 - **Preserve, never repair; tolerant by default with diagnostics, `strict` option; encoder always strict**: see [ADR 0001](../adr/0001-otbm-symmetric-event-contract.md)
 - **Upgrades only for version conversion**: see [ADR 0001](../adr/0001-otbm-symmetric-event-contract.md)
 - **Text codec option on reader and encoder**: see [ADR 0002](../adr/0002-text-codec-per-file.md)
-- **Ceilings** (decided in the v0.02 grill): reference `OTBM_LARGEST_KNOWN` = 110 MB; file warning above 2× (220 MB), fatal above 3× (330 MB); average items per tile warning above 50; items per tile warning > 64, fatal > 1,024; children per container warning > 32, fatal > 1,024; item nesting warning > 8, fatal > 32; node properties warning > 64 KB, fatal > 1 MB; any tile outside the header's `width × height` is a warning
-- **Performance targets in Node** (decided in the v0.02 grill), on medium, large, xlarge and stress: `read` with an empty visitor ≤ 1.0 s on the xlarge; `writeStream(otbm.source(bytes))` ≤ 2.5 s on the xlarge and ≤ 1 s on the large; `load` ≤ 4 s on the xlarge with heap measured; extra memory of `writeStream` ≤ 32 MB on any map; a regression above 10% on any target needs a written justification or the phase does not close
+- **Ceilings** (v0.02 grill, revised during execution): reference `OTBM_LARGEST_KNOWN` = 110 MB; file warning (diagnostic) above 2× (220 MB), fatal above 3× (330 MB); fatal ceilings for items per tile (1,024), children per container (1,024), item nesting (32) and node property bytes (1 MB). The warning levels per tile and per node and the map statistics of the grill table were dropped: they cost counters in the hot loop for signals the consumer computes on its own
+- **Performance targets in Node** (v0.02 grill, `load` revised during execution), on medium, large, xlarge and stress: `read` with an empty visitor ≤ 1.0 s on the xlarge; `writeStream(otbm.source(bytes))` ≤ 2.5 s on the xlarge and ≤ 1 s on the large; extra memory of `writeStream` ≤ 32 MB on any map; `load` no slower than 0.2, heap measured (the grill's ≤ 4 s had no reference: `load` is an object model, like model A of S1); a regression above 10% on any target needs a written justification or the phase does not close
+
+## Execution notes (whole plan)
+
+**The reader and the encoder were rebuilt halfway through.** The first version of Phases 2-4 was written anew and measured only in Phase 9, through a harness that also loaded a whole document in every process; it looked 1.5-1.8× slower than the S1 reader. Phase 9 stopped there. The reader was rebuilt from the 0.2 structure, measured after every step; the writer was rebuilt from the 0.2 writer's layout (one function per node). The step-by-step costs are in `packages/otbm/results/perf.md`.
+
+**Module map** (`otbm-*` names, as the package convention asks; reorganized after review):
+- `otbm.ts`: factory; `read` takes one visitor or a list, called in order for each event
+- `otbm-config.ts`: constants, limits and the limit functions
+- `otbm-attributes.ts`: one symmetric table, read and write per attribute
+- `otbm-stream.ts`: reader (`OtbmStreamParser`) with its diagnostic log
+- `otbm-writer.ts`: encoder
+- `otbm-document.ts`: collect and replay objects
+- `otbm-layout.ts`: collect the Source layout and compose a model back into it
+- `otbm-upgrade.ts`, `otbm-compare.ts`
+- `types.ts`: every public type
+- `tests/support/`: test-only code (byte builders, event recorder and tile source over a document, fast-check arbitraries, fixture loading), so nothing test-only sits in `src/` and coverage needs no exclusions
+
+**What changed against the deliverables below:**
+- **Diagnostics:** 7 codes (`file-above-reference`, `node-out-of-place`, `tile-outside-area`, `unknown-node`, `area-properties-extra`, `trailing-bytes`, `possible-utf8-text`). Each is reported once at the end as `{ code, offset, count, message }`; there is no severity and no `strict` option.
+- **Two Shape facts found in the fixtures** joined the contract: the 4 bytes before the root (`header.identifier`) and the bytes after the root node (`end(trailing)`, 1 byte in `large-small-areas`). `mapDataEnd` was added for maps with nodes after the map data.
+- **`large-small-areas` is malformed** further than S5 described. An area closes early and every later area sits under the root: 205 thousand areas. Self-contained nodes out of place are read in place, so its 3.3 million tiles are seen and the file still comes back byte for byte.
+- **`OtbmDocumentItem.children`** is `null` when empty (12 million empty arrays otherwise).
+- **Bench:** `bench/otbm.bench.ts` runs each cell in its own process, best of 5. The fixtures helper and the examples package are workspace packages (`fixtures/`, `examples/`).
+- **Validation reached:**
+  - 12 of 12 fixtures byte-identical through `write(source)`, `write(load)` and the composer;
+  - 3 v1 fixtures upgraded to v3 with no semantic difference;
+  - property tests over 800 random maps;
+  - coverage of 96.7% of statements and 93.9% of branches.
 
 ---
 
@@ -30,7 +58,18 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** The package's public contract (events, attributes, diagnostics, limits, sources) exists as types and compiles, with no implementation yet.
 
-**Status:** `not started`
+**Status:** `completed`. Commit of the full plan (reviewed as a whole): `5f7e1db` (utils), `7ad4aa2` (otbm), `d76c2b8` (examples), `5da20ea` (changeset), followed by a `docs` commit.
+
+**As built** (where it departs from the deliverables below):
+- **The 0.2 code moved to `src/legacy/`** (`otbm.ts`, `otbm-stream.ts`, `otbm-attributes.ts`, `otbm-writer.ts`, `types.ts`, their tests and the bench), out of `index.ts`. `tests/*.spec.ts` and `tests/*.local.ts` import it from there until Phase 10. `otbm-config.ts` stays in `src/`, shared, and gains the map-data attributes `SPAWN_FILE` (0x0b) and `HOUSE_FILE` (0x0d).
+- **Every known node keeps a `tail`**, not only tiles and items: header, area, town and waypoint, for extra property bytes such as the 12-byte area of `large-small-areas`.
+- **`OtbmMapData` is an ordered attribute list**, like items, so the order of descriptions and of the spawn and house files survives.
+- **`tile` receives `flags: number | null`:** an explicit flags attribute with value 0 differs from no attribute.
+- **Unknown nodes are emitted as their verbatim bytes** (`unknownNode(type, raw)`, from node start to node end, children included). There is no `unknownNodeEnd`, and nothing inside an unknown node is interpreted.
+- **Diagnostics are a visitor event** (`diagnostic`), not an `onDiagnostic` option: one channel, which the object document can collect.
+- **Every visitor method is optional,** so a consumer implements only what it needs; the encoder implements them all.
+- **`ATTRIBUTE_MAP` (0x80) has no member of its own.** It is kept losslessly as the `unknown` tail, as in S1; parsing it can come later.
+- **`SourceLayout` keeps only the position of the town and waypoint lists** (`{ kind: 'list' }`). Their contents come from the consumer's model, which can edit them.
 
 ### Deliverables
 
@@ -58,7 +97,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** `read(bytes, visitor)` reports every node of every fixture in file order with its full Shape, allocating nothing per tile or per item without attributes.
 
-**Status:** `not started`
+**Status:** `completed`. Commit of the full plan (reviewed as a whole): `5f7e1db` (utils), `7ad4aa2` (otbm), `d76c2b8` (examples), `5da20ea` (changeset), followed by a `docs` commit.
 
 ### Deliverables
 
@@ -89,7 +128,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** Anomalies are reported as early as they can be detected, ceilings stop corrupted or hostile files, and unexpected structure is preserved instead of repaired.
 
-**Status:** `not started`
+**Status:** `completed`. Commit of the full plan (reviewed as a whole): `5f7e1db` (utils), `7ad4aa2` (otbm), `d76c2b8` (examples), `5da20ea` (changeset), followed by a `docs` commit.
 
 ### Deliverables
 
@@ -119,7 +158,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** Piping the reader into the Encoder reproduces every fixture byte for byte, and `writeStream` hands out bounded chunks with backpressure.
 
-**Status:** `not started`
+**Status:** `completed`. Commit of the full plan (reviewed as a whole): `5f7e1db` (utils), `7ad4aa2` (otbm), `d76c2b8` (examples), `5da20ea` (changeset), followed by a `docs` commit.
 
 ### Deliverables
 
@@ -149,7 +188,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** `load()` gives scripts and small maps an object model that is lossless because it is built from, and replayed as, the same events.
 
-**Status:** `not started`
+**Status:** `completed`. Commit of the full plan (reviewed as a whole): `5f7e1db` (utils), `7ad4aa2` (otbm), `d76c2b8` (examples), `5da20ea` (changeset), followed by a `docs` commit.
 
 ### Deliverables
 
@@ -175,7 +214,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** A consumer with its own editable model writes a map in its Source layout: unedited areas come back byte-identical and new tiles go to canonical areas.
 
-**Status:** `not started`
+**Status:** `completed`. Commit of the full plan (reviewed as a whole): `5f7e1db` (utils), `7ad4aa2` (otbm), `d76c2b8` (examples), `5da20ea` (changeset), followed by a `docs` commit.
 
 ### Deliverables
 
@@ -202,7 +241,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** A map can be upgraded from v1 to v2 or v3 (and v2 to v3) in streaming, and downgrades are refused.
 
-**Status:** `not started`
+**Status:** `completed`. Commit of the full plan (reviewed as a whole): `5f7e1db` (utils), `7ad4aa2` (otbm), `d76c2b8` (examples), `5da20ea` (changeset), followed by a `docs` commit.
 
 ### Deliverables
 
@@ -226,7 +265,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** The lossless contract is checked beyond the fixtures: random valid event streams and semantic comparison of any two maps.
 
-**Status:** `not started`
+**Status:** `completed`. Commit of the full plan (reviewed as a whole): `5f7e1db` (utils), `7ad4aa2` (otbm), `d76c2b8` (examples), `5da20ea` (changeset), followed by a `docs` commit.
 
 ### Deliverables
 
@@ -252,7 +291,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** The package meets the Node targets on every size, with numbers recorded next to the S5 references.
 
-**Status:** `not started`
+**Status:** `completed`. Commit of the full plan (reviewed as a whole): `5f7e1db` (utils), `7ad4aa2` (otbm), `d76c2b8` (examples), `5da20ea` (changeset), followed by a `docs` commit.
 
 ### Deliverables
 
@@ -270,7 +309,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** The 0.3 API is documented by examples that run in CI, and the 0.2 API is gone.
 
-**Status:** `not started`
+**Status:** `completed`. Commit of the full plan (reviewed as a whole): `5f7e1db` (utils), `7ad4aa2` (otbm), `d76c2b8` (examples), `5da20ea` (changeset), followed by a `docs` commit.
 
 ### Deliverables
 
