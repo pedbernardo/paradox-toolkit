@@ -12,7 +12,7 @@ const DEFAULT_IDS = [
   'xlarge-stress-otbm2-otb3-15',
   'xlarge-stress-alt-otbm2-otb3-23'
 ]
-const DEFAULT_OPERATIONS = ['read', 'copy', 'load', 'write-document']
+const DEFAULT_OPERATIONS = ['read', 'read-layout', 'copy', 'compose', 'load', 'write-document']
 
 const args = process.argv.slice(2)
 const opsArg = args.find((arg) => arg.startsWith('--ops='))
