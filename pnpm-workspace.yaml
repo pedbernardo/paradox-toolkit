@@ -3,16 +3,12 @@ packages:
   - 'fixtures'
   - 'examples'
 
-allowBuilds:
-  sharp: true
-
 catalogs:
   default:
     '@arethetypeswrong/cli': ^0.18.3
     '@changesets/cli': ^2.31.0
     '@commitlint/cli': ^21.0.2
     '@commitlint/config-conventional': ^21.0.2
-    '@sinclair/typebox': ^0.34.49
     '@types/node': ^25.9.2
     '@vitest/coverage-v8': ^4.1.8
     commander: ^15.0.0
@@ -23,7 +19,6 @@ catalogs:
     lint-staged: ^17.0.7
     oxfmt: ^0.54.0
     oxlint: ^1.69.0
-    sharp: ^0.34.5
     tsup: ^8.5.1
     tsx: ^4.22.4
     typescript: ^6.0.3
@@ -34,5 +29,4 @@ pnpm:
     - esbuild
     - lefthook
     - oxlint
-    - sharp
     - tsx

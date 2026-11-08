@@ -36,3 +36,6 @@ docs/drafts/
 
 # Benchmark output, regenerated on every run (curated results live in results/perf.md)
 packages/*/results/*-latest.md
+
+# Removed packages kept for reference, outside git history
+references/
