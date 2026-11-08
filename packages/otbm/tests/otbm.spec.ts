@@ -5,15 +5,15 @@ import { ParseError } from '@paradoxlab/utils'
 import type { OtbmFile } from '../src/types.js'
 import { Otbm } from '../src/otbm.js'
 
-const FIXTURES = join(import.meta.dirname, '../fixtures')
+const FIXTURES = join(import.meta.dirname, '../../../fixtures/maps')
 
 function load(name: string): Uint8Array {
   const buf = readFileSync(join(FIXTURES, name))
   return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength)
 }
 
-describe('small-v1.fixture.otbm', () => {
-  const arr = load('small-v1.fixture.otbm')
+describe('small-houses-spawns-otbm2-otb3-19.fixture.otbm', () => {
+  const arr = load('small-houses-spawns-otbm2-otb3-19.fixture.otbm')
   let file: OtbmFile
 
   beforeAll(() => {
@@ -51,8 +51,8 @@ describe('small-v1.fixture.otbm', () => {
   })
 })
 
-describe('oldmap-v0.fixture.otbm', () => {
-  const arr = load('oldmap-v0.fixture.otbm')
+describe('small-legacy-otbm1-otb2-unk.fixture.otbm', () => {
+  const arr = load('small-legacy-otbm1-otb2-unk.fixture.otbm')
   const lookup = { getBySid: (sid: number) => ({ cid: sid }) }
   let file: OtbmFile
 

@@ -5,23 +5,23 @@ import { ParseError } from '@paradoxlab/utils'
 import type { OtbmFile } from '../src/types.js'
 import { Otbm } from '../src/otbm.js'
 
-const FIXTURES = join(import.meta.dirname, '../fixtures')
+const FIXTURES = join(import.meta.dirname, '../../../fixtures/maps')
 
 function load(name: string) {
   const buf = readFileSync(join(FIXTURES, name))
   return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength)
 }
 
-const mediumV2Path = join(FIXTURES, 'local.medium-v2.otbm')
-describe.skipIf(!existsSync(mediumV2Path))('local.medium-v2.otbm', () => {
+const mediumV2Path = join(FIXTURES, 'large-small-areas-otbm3-otb3-20.otbm')
+describe.skipIf(!existsSync(mediumV2Path))('large-small-areas-otbm3-otb3-20.otbm', () => {
   let file: OtbmFile
 
   beforeAll(() => {
-    file = Otbm().load(load('local.medium-v2.otbm'))
+    file = Otbm().load(load('large-small-areas-otbm3-otb3-20.otbm'))
   }, 30_000)
 
   it('validate() does not throw', () => {
-    expect(() => Otbm().validate(load('local.medium-v2.otbm'))).not.toThrow()
+    expect(() => Otbm().validate(load('large-small-areas-otbm3-otb3-20.otbm'))).not.toThrow()
   })
 
   it('header: version=2, width=4000, height=4000', () => {
@@ -51,16 +51,16 @@ describe.skipIf(!existsSync(mediumV2Path))('local.medium-v2.otbm', () => {
   })
 })
 
-const mediumV1Path = join(FIXTURES, 'local.medium-v1.otbm')
-describe.skipIf(!existsSync(mediumV1Path))('local.medium-v1.otbm', () => {
+const mediumV1Path = join(FIXTURES, 'medium-reference-otbm2-otb3-15.otbm')
+describe.skipIf(!existsSync(mediumV1Path))('medium-reference-otbm2-otb3-15.otbm', () => {
   let file: OtbmFile
 
   beforeAll(() => {
-    file = Otbm().load(load('local.medium-v1.otbm'))
+    file = Otbm().load(load('medium-reference-otbm2-otb3-15.otbm'))
   }, 20_000)
 
   it('validate() does not throw', () => {
-    expect(() => Otbm().validate(load('local.medium-v1.otbm'))).not.toThrow()
+    expect(() => Otbm().validate(load('medium-reference-otbm2-otb3-15.otbm'))).not.toThrow()
   })
 
   it('header: version=1, width=3000, height=3000', () => {
@@ -82,21 +82,21 @@ describe.skipIf(!existsSync(mediumV1Path))('local.medium-v1.otbm', () => {
   })
 })
 
-const largeV0Path = join(FIXTURES, 'local.large-v0.otbm')
-describe.skipIf(!existsSync(largeV0Path))('local.large-v0.otbm', () => {
+const largeV0Path = join(FIXTURES, 'small-wide-otbm1-otb1-3.otbm')
+describe.skipIf(!existsSync(largeV0Path))('small-wide-otbm1-otb1-3.otbm', () => {
   const lookup = { getBySid: (sid: number) => ({ cid: sid }) }
   let file: OtbmFile
 
   beforeAll(() => {
-    file = Otbm({ lookup }).load(load('local.large-v0.otbm'))
+    file = Otbm({ lookup }).load(load('small-wide-otbm1-otb1-3.otbm'))
   }, 15_000)
 
   it('validate() does not throw', () => {
-    expect(() => Otbm().validate(load('local.large-v0.otbm'))).not.toThrow()
+    expect(() => Otbm().validate(load('small-wide-otbm1-otb1-3.otbm'))).not.toThrow()
   })
 
   it('load() without OtbLookup throws ParseError (v0 requires lookup)', () => {
-    expect(() => Otbm().load(load('local.large-v0.otbm'))).toThrow(ParseError)
+    expect(() => Otbm().load(load('small-wide-otbm1-otb1-3.otbm'))).toThrow(ParseError)
   })
 
   it('header: version=0, width=5000, height=5000', () => {
@@ -133,16 +133,16 @@ describe.skipIf(!existsSync(largeV0Path))('local.large-v0.otbm', () => {
   })
 })
 
-const xlargeV1Path = join(FIXTURES, 'local.xlarge-v1.otbm')
-describe.skipIf(!existsSync(xlargeV1Path))('local.xlarge-v1.otbm', () => {
+const xlargeV1Path = join(FIXTURES, 'xlarge-stress-otbm2-otb3-15.otbm')
+describe.skipIf(!existsSync(xlargeV1Path))('xlarge-stress-otbm2-otb3-15.otbm', () => {
   let file: OtbmFile
 
   beforeAll(() => {
-    file = Otbm().load(load('local.xlarge-v1.otbm'))
+    file = Otbm().load(load('xlarge-stress-otbm2-otb3-15.otbm'))
   }, 60_000)
 
   it('validate() does not throw', () => {
-    expect(() => Otbm().validate(load('local.xlarge-v1.otbm'))).not.toThrow()
+    expect(() => Otbm().validate(load('xlarge-stress-otbm2-otb3-15.otbm'))).not.toThrow()
   })
 
   it('header: version=1, width=65535, height=65535', () => {

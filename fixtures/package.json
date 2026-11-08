@@ -1,0 +1,22 @@
+{
+  "name": "@paradoxlab/fixtures",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Test-only access to fixtures/manifest.json and the files it lists",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "scan": "node --import tsx/esm src/scan-cli.ts"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

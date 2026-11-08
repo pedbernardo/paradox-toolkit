@@ -2,9 +2,9 @@
  * OTBM parse throughput benchmark
  *
  * pnpm bench                             -- all available fixtures, sequential
- * pnpm bench -- local.xlarge-v1          -- single fixture (with or without .otbm)
+ * pnpm bench -- xlarge-stress-otbm2-otb3-15          -- single fixture (with or without .otbm)
  * pnpm bench -- --profile                -- all fixtures + CPU profile
- * pnpm bench -- local.xlarge-v1 --profile
+ * pnpm bench -- xlarge-stress-otbm2-otb3-15 --profile
  */
 /* oxlint-disable no-console */
 import { readFileSync, existsSync, readdirSync, statSync, writeFileSync } from 'node:fs'
@@ -14,16 +14,16 @@ import { Otbm } from './otbm.js'
 
 // Baseline: 2026-05-25, Node 22, Windows 11 (stream parser + typed arrays)
 // fixture                          size      parse    MB/s       tiles       items  towns
-// small-v1.fixture.otbm            3.1MB     262ms    11.8     271,484     368,625      2
-// oldmap-v0.fixture.otbm           0.5MB      39ms    12.8      62,382      75,352      1
-// local.large-v0.otbm              3.8MB     395ms     9.6     461,023     513,522      3
-// local.medium-v1.otbm            11.6MB   1,111ms    10.4   1,073,788   1,348,935      5
-// local.medium-v2.otbm            33.0MB   4,283ms     7.7   3,342,051   4,354,448      5
-// local.xlarge-v1.otbm            78.7MB   9,264ms     8.5   7,835,011   8,602,187     10  (smoke run)
+// small-houses-spawns-otbm2-otb3-19.fixture.otbm            3.1MB     262ms    11.8     271,484     368,625      2
+// small-legacy-otbm1-otb2-unk.fixture.otbm           0.5MB      39ms    12.8      62,382      75,352      1
+// small-wide-otbm1-otb1-3.otbm              3.8MB     395ms     9.6     461,023     513,522      3
+// medium-reference-otbm2-otb3-15.otbm            11.6MB   1,111ms    10.4   1,073,788   1,348,935      5
+// large-small-areas-otbm3-otb3-20.otbm            33.0MB   4,283ms     7.7   3,342,051   4,354,448      5
+// xlarge-stress-otbm2-otb3-15.otbm            78.7MB   9,264ms     8.5   7,835,011   8,602,187     10  (smoke run)
 //
 // Bottleneck: object allocation per tile/item - byte scanning is constant across sizes.
 
-const FIXTURES_DIR = join(import.meta.dirname, '../fixtures')
+const FIXTURES_DIR = join(import.meta.dirname, '../../../fixtures/maps')
 const PASSTHROUGH_LOOKUP = { getBySid: (sid: number) => ({ cid: sid }) }
 const isTTY = process.stdout.isTTY
 

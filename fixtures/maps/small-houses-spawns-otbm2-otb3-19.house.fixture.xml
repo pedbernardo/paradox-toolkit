@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<houses>
+<house name="House 1" houseid="1" entryx="553" entryy="430" entryz="7" rent="0" townid="1" size="19"/>
+<house name="House 2" houseid="2" entryx="557" entryy="430" entryz="7" rent="0" townid="1" size="8"/>
+<house name="House 3" houseid="3" entryx="550" entryy="433" entryz="6" rent="0" townid="1" size="18"/>
+<house name="House 4" houseid="4" entryx="563" entryy="424" entryz="7" rent="0" townid="1" size="18"/>
+<house name="House 5" houseid="5" entryx="571" entryy="424" entryz="7" rent="0" townid="1" size="38"/>
+<house name="House 6" houseid="6" entryx="573" entryy="405" entryz="7" rent="0" townid="1" size="12"/>
+<house name="House 7" houseid="7" entryx="569" entryy="400" entryz="7" rent="0" townid="1" size="11"/>
+<house name="House 8" houseid="8" entryx="574" entryy="398" entryz="6" rent="0" townid="1" size="6"/>
+<house name="House 9" houseid="9" entryx="572" entryy="398" entryz="6" rent="0" townid="1" size="11"/>
+<house name="House 10" houseid="10" entryx="559" entryy="406" entryz="7" rent="0" townid="1" size="12"/>
+<house name="House 11" houseid="11" entryx="563" entryy="400" entryz="7" rent="0" townid="1" size="10"/>
+<house name="House 12" houseid="12" entryx="555" entryy="400" entryz="7" rent="0" townid="1" size="31"/>
+<house name="House 13" houseid="13" entryx="562" entryy="402" entryz="6" rent="0" townid="1" size="4"/>
+<house name="House 14" houseid="14" entryx="561" entryy="403" entryz="6" rent="0" townid="1" size="12"/>
+<house name="House 15" houseid="15" entryx="559" entryy="400" entryz="6" rent="0" townid="1" size="10"/>
+<house name="House 16" houseid="16" entryx="562" entryy="399" entryz="5" rent="0" townid="1" size="6"/>
+<house name="House 17" houseid="17" entryx="561" entryy="400" entryz="5" rent="0" townid="1" size="19"/>
+<house name="House 18" houseid="18" entryx="542" entryy="404" entryz="7" rent="0" townid="1" size="15"/>
+<house name="House 19" houseid="19" entryx="534" entryy="404" entryz="7" rent="0" townid="1" size="27"/>
+<house name="House 20" houseid="20" entryx="544" entryy="410" entryz="7" rent="0" townid="1" size="6"/>
+<house name="House 21" houseid="21" entryx="539" entryy="412" entryz="7" rent="0" townid="1" size="6"/>
+<house name="House 22" houseid="22" entryx="543" entryy="414" entryz="6" rent="0" townid="1" size="12"/>
+<house name="House 23" houseid="23" entryx="543" entryy="417" entryz="5" rent="0" townid="1" size="7"/>
+<house name="Guild Hall" houseid="24" entryx="501" entryy="402" entryz="7" rent="0" townid="1" size="41"/>
+<house name="House 25" houseid="25" entryx="670" entryy="558" entryz="7" rent="0" townid="2" size="15"/>
+<house name="House 26" houseid="26" entryx="661" entryy="570" entryz="7" rent="0" townid="2" size="4"/>
+<house name="House 27" houseid="27" entryx="661" entryy="573" entryz="7" rent="0" townid="2" size="4"/>
+<house name="House 28" houseid="28" entryx="669" entryy="571" entryz="7" rent="0" townid="2" size="7"/>
+<house name="House 29" houseid="29" entryx="669" entryy="573" entryz="7" rent="0" townid="2" size="7"/>
+<house name="House 30" houseid="30" entryx="682" entryy="573" entryz="7" rent="0" townid="2" size="7"/>
+<house name="Guild Hall 2" houseid="31" entryx="688" entryy="573" entryz="7" rent="0" townid="2" size="57"/>
+</houses>

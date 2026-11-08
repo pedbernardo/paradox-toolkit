@@ -21,6 +21,13 @@ coverage
 *.otbm
 !*.fixture.otbm
 
+# Root fixtures: only the manifest, the helper package and public *.fixture.* files are versioned
+fixtures/client/
+fixtures/maps/*
+!fixtures/maps/*.fixture.*
+fixtures/items/*
+!fixtures/items/*.fixture.*
+
 # Temporary files
 tmp/
 
