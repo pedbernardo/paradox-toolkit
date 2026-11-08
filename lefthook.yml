@@ -7,6 +7,11 @@ pre-commit:
     typecheck:
       run: pnpm typecheck
 
+commit-msg:
+  commands:
+    commitlint:
+      run: pnpm commitlint --edit {1}
+
 pre-push:
   commands:
     typecheck:
