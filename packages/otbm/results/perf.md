@@ -11,6 +11,19 @@
 | xlarge-stress-otbm2-otb3-15 | 78.7 | 498 ms | 1,163 ms · < 1 MB | 7,499 ms · 2,978 MB | 1,947 ms |
 | xlarge-stress-alt-otbm2-otb3-23 | 103.9 | 714 ms | 1,408 ms · < 1 MB | 9,823 ms · 3,876 MB | 2,579 ms |
 
+## The editor's path: Source layout and composer
+
+Measured 2026-11-08, same machine and rules. `read-layout` is `read` with `collectSourceLayout`, what an editor does on open. `compose` is `writeStream(composeOtbm(layout, tiles))` with every tile kept in a model and served from 256×256 chunks with small-integer keys, what an editor does on save; the bytes match the file.
+
+| Fixture | MB | `read` | `read-layout` | `compose` |
+|---|---|---|---|---|
+| xlarge-stress-otbm2-otb3-15 | 78.7 | 423 ms | 518 ms | 1,992 ms |
+| xlarge-stress-alt-otbm2-otb3-23 | 103.9 | 727 ms | 735 ms | 2,511 ms |
+
+- Collecting the layout costs at most 0.1 s on top of `read`.
+- `compose` stays within the 2.5 s `copy` target on both maps, with the tiles' objects in the heap (the GC accounts for much of the time; a model in typed arrays would cost less).
+- Two fixes came from this measurement: the composer walked each area through a closure that allocated an `[x, y]` pair per tile (stress: 3,366 → 1,992 ms), and a tile source keyed by `x + y·65,536 + z·2³²` falls out of V8's small integers, which made the first version of this bench take 5 s (a note for the editor's own tile index).
+
 ## Against the references
 
 | | S1 reader (spike) | `@paradoxlab/otbm` 0.2 | 0.3 |
@@ -19,7 +32,7 @@
 | `read`, large | 395 ms (reads it wrong: ignores structure) | n/a | 383 ms |
 | `read`, stress | 709 ms | n/a | 498 ms |
 | `read`, stress-alt | 982 ms | n/a | 714 ms |
-| write the stress-alt from a model | 3,050 ms (S5, Node) | not lossless | 1,408 ms (`copy`: read + write) |
+| write the stress-alt from a model | 3,050 ms (S5, Node) | not lossless | 1,408 ms (`copy`: read + write); 2,511 ms through the composer |
 | `load`, stress | n/a | 9,268 ms · 2,594 MB | 7,499 ms · 2,978 MB |
 
 S1 numbers were measured on the same machine and day with the same rules (best of 5, own process), by its `readOtbm` with a no-op visitor.

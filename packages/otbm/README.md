@@ -98,7 +98,7 @@ Strings are read with a text codec, windows-1252 by default; maps written in Pol
 
 ## Diagnostics and ceilings
 
-Structure the reader does not expect is kept, never repaired: an unknown node, a tile outside an area or bytes after the root are written back as they were. Each kind is reported once, after reading, through the visitor's `diagnostic` event (`{ code, offset, count, message }`).
+Structure the reader does not expect is kept, never repaired: an unknown node, a tile outside an area or bytes after the root are written back as they were. Tile flags after a tile's inline items are the one exception: they are written back first, the canonical order, and a repeated flags attribute keeps only the last value. Each kind is reported once, after reading, through the visitor's `diagnostic` event (`{ code, offset, count, message }`).
 
 Ceilings stop corrupt or hostile files with a `ParseError`: file size (3× the largest known map), items per tile, items per container, nesting and property bytes per node. They are in `DEFAULT_OTBM_LIMITS` and can be changed with `Otbm({ limits })`.
 
