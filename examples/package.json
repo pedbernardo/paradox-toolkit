@@ -1,0 +1,27 @@
+{
+  "name": "@paradoxlab/examples",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Runnable examples of the @paradoxlab packages; the README snippets come from here",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "otbm-stats": "node --import tsx/esm src/run.ts otbm-stats",
+    "otbm-upgrade": "node --import tsx/esm src/run.ts otbm-upgrade",
+    "otbm-edit": "node --import tsx/esm src/run.ts otbm-edit",
+    "otbm-compose": "node --import tsx/esm src/run.ts otbm-compose",
+    "otbm-detect-codec": "node --import tsx/esm src/run.ts otbm-detect-codec"
+  },
+  "dependencies": {
+    "@paradoxlab/otbm": "workspace:*",
+    "@paradoxlab/utils": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
