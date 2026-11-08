@@ -5,7 +5,7 @@ This file provides guidance to Claude Code when working with code in this reposi
 ## Docs & guidelines
 
 - [docs/PNPM.md](docs/PNPM.md) - pnpm workspaces, catalog usage, and publish flow
-- [docs/SCHEMAS.md](docs/SCHEMAS.md) - `content.json` and `positions.json` schema reference
+- [docs/SCHEMAS.md](docs/SCHEMAS.md) - `content.json` and `sprites.json` schema reference
 - [docs/BINARY-FORMATS.md](docs/BINARY-FORMATS.md) - on-disk layout of `.dat`, `.spr`, `.otb`, and `.otbm`
 - [docs/plans/README.md](docs/plans/README.md) - plan naming, lifecycle, phase structure, commit strategy
 
@@ -51,8 +51,7 @@ Git hooks (Lefthook): pre-commit runs `lint-staged` (oxfmt + oxlint --fix on sta
 ### Package graph
 
 ```
-@paradoxlab/spriter   → @paradoxlab/spr
-@paradoxlab/thinger   → @paradoxlab/dat, @paradoxlab/otb
+@paradoxlab/backpack  → @paradoxlab/dat, @paradoxlab/otb, @paradoxlab/spr
 @paradoxlab/dat       → @paradoxlab/utils
 @paradoxlab/spr       → @paradoxlab/utils
 @paradoxlab/otb       → @paradoxlab/utils
@@ -61,7 +60,7 @@ Git hooks (Lefthook): pre-commit runs `lint-staged` (oxfmt + oxlint --fix on sta
 @paradoxlab/appearance → (none)
 ```
 
-`@paradoxlab/spriter` and `@paradoxlab/thinger` are build tools (CLI + API). `@paradoxlab/appearance` holds the pure visual rules of thing types (sprite index, patterns, elevation). The other five are pure parsers/writers.
+`@paradoxlab/backpack` is the build tool (CLI + API) for item content and sprite atlases. `@paradoxlab/appearance` holds the pure visual rules of thing types (sprite index, patterns, elevation). The other five are pure parsers/writers.
 
 ### Package anatomy
 
@@ -96,11 +95,11 @@ parser.validate(buffer)           // throws ParseError on mismatch
 for await (const chunk of Otbm().writeStream(data)) { ... }
 ```
 
-Factories for build tools:
+Build functions (`@paradoxlab/backpack`):
 
 ```ts
-const content = Thinger({ dat: datFile, otb: otbFile }).build()
-const sheet = await Spriter({ spr: sprFile, maxWidth: 4096 }).build()
+const content = buildContent({ dat: datFile, otb: otbFile })
+const sheet = await buildSpriteSheet(sprFile, { deflate: deflateNode, maxPageSize: 4096 })
 ```
 
 ### Version support
@@ -114,7 +113,7 @@ Supported client versions: `710, 740, 750, 755, 760, 770, 772, 860, 870, 960, 98
 - `ParseError` - malformed or unexpected binary data. Thrown by all parsers.
 - `UnsupportedVersionError` - version not in the supported list.
 - Both are exported from `@paradoxlab/utils` and re-exported by each package's `index.ts`.
-- CLI boundaries (`spriter` CLI) catch errors and exit via `console.error + process.exit(1)`, not re-throw.
+- CLI boundaries (`backpack` CLI) catch errors and exit via `console.error + process.exit(1)`, not re-throw.
 
 ---
 

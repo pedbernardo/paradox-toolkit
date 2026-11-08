@@ -19,13 +19,29 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 - **Items by sid (never invented), appearances by cid, lineage explicit (`null` = no OTB, sid = cid declared); columns in JSON, rich views in the loader**: see [ADR 0004](../adr/0004-asset-pack-format.md)
 - **Sprite atlas** (decided in the v0.02 grill): `.spr` only; several pages with `maxPageSize` 4096; optional `ids` subset; optional trimming (off by default); configurable padding; own PNG encoder without `sharp` (row filters over deflate, Node and browser); per-sprite extraction; lossless always (no palette, no KTX2/Basis); WebP deferred; binary alpha
 
+## As built
+
+The phases below keep their original deliverables; where the code differs, this section wins.
+
+- **Entry points:** `.`, `/content` and `/sprites` only. `/load` moves to plan 5, which is where its first code lands; `@paradoxlab/appearance` and `@paradoxlab/utils` are not dependencies yet (knip).
+- **File layout:** flat `src/backpack-*.ts` modules (`backpack-content`, `backpack-png`, `backpack-atlas`, `backpack-sprites`, `backpack-node`, `backpack-views`), not `src/content/` and `src/sprites/` folders; entry files `src/content.ts` and `src/sprites.ts`.
+- **Content columns:** `ItemFlag` has no `BlocksSight` bit: the old mapper filled it from the same flag as `BlocksMissile`, and no client file tells them apart. Gameplay keeps every field the old mapper produced (`floorChange`, `weight`, writable lengths, `rotateTo`, `lensHelp`, …); visual fields (`order`, `elevation`, offset, light, sprites) live in the appearance columns by cid, not per item. No `toColumns`/`fromColumns`: `buildContent` writes columns directly.
+- **Views:** `viewContent(content).items.get(sid)` and `viewFrames(frames).get(spriteId)` read the columns on demand through one `Int32Array` index, the same `items.get(sid)` shape ADR 0004 gives the loader (10.98: index 1.6 ms; see `results/perf.md`).
+- **Atlas:** one shelf packer for trimmed and untrimmed sprites (no grid special case); pages are drawn one at a time by `renderPage`.
+- **PNG:** `encodePng(rgba, width, height, deflate)`; `deflateNode` (root entry) and `deflateWeb` (over `CompressionStream`, in `/sprites`) live in `backpack-png.ts` and `backpack-node.ts`, not in separate `deflate-*` files.
+- **I/O:** `backpack-node.ts` throws `Error("<kind> file not found: <path>")`; the CLI catches and exits 1. Covered by the CLI and local tests rather than an `io.test.ts`.
+- **Phase 6:** `thinger` and `spriter` are removed from the workspace as ADR 0003 decided; their source is kept in `references/` (git-ignored) for consultation until it is deleted. `sharp` leaves the catalog and the build allow-lists. The old `content.json` 1.0.0 and `positions.json` sections leave `docs/SCHEMAS.md`.
+- **Performance:** `bench:sprites` compared against spriter 0.2 on four clients before its removal (`results/perf.md`): 2-2.5x faster, same or smaller PNGs, pages ≤ 4096 px, lossless.
+- **Follow-up:** `@paradoxlab/spr` caches every decoded sprite (≈ 1.4 GB on the 1098); bounding it is a change to `spr`.
+- **Commit strategy:** commit of the full plan after the maintainer's review, split into code, changesets and docs.
+
 ---
 
 ## Phase 1 - Package scaffold
 
 **Objective:** `@paradoxlab/backpack` builds four entry points and a `backpack` binary, with no feature yet.
 
-**Status:** `not started`
+**Status:** `completed`
 
 ### Deliverables
 
@@ -45,7 +61,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** `/content` turns a DAT and an OTB into one item per sid and one raw appearance per cid, with no sid lost or invented.
 
-**Status:** `not started`
+**Status:** `completed`
 
 ### Deliverables
 
@@ -74,7 +90,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** The toolkit encodes RGBA pages to lossless PNG without native dependencies, in Node and in the browser.
 
-**Status:** `not started`
+**Status:** `completed`
 
 ### Deliverables
 
@@ -99,7 +115,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** `/sprites` packs the sprites of a `.spr` into pages that fit GPU textures, and extracts single sprites.
 
-**Status:** `not started`
+**Status:** `completed`
 
 ### Deliverables
 
@@ -126,7 +142,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** `backpack content` and `backpack sprites` replace the `thinger` and `spriter` binaries.
 
-**Status:** `not started`
+**Status:** `completed`
 
 ### Deliverables
 
@@ -151,7 +167,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** The repository has one asset tool, and its docs describe it.
 
-**Status:** `not started`
+**Status:** `completed`
 
 ### Deliverables
 

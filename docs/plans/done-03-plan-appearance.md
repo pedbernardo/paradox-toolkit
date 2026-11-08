@@ -19,7 +19,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** `@paradoxlab/appearance` publishes the sprite index, pattern, elevation and animation-phase rules with the same behavior as the editor's package.
 
-**Status:** `completed`, uncommitted (whole plan reviewed at the end)
+**Status:** `completed` (commit of the full plan: `234dd2d`)
 
 **As built:**
 - **The rules live in one `src/appearance.ts`** instead of `layout.ts`, `patterns.ts` and `elevation.ts`: they add up to about 110 lines, and three files that small would be the fragmentation the package convention avoids.
@@ -51,7 +51,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** The package is documented and ready to publish.
 
-**Status:** `completed`, uncommitted (whole plan reviewed at the end)
+**Status:** `completed` (commit of the full plan: `234dd2d`)
 
 ### Deliverables
 

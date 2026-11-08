@@ -60,7 +60,7 @@ Internal packages reference each other with `workspace:*`:
 }
 ```
 
-pnpm resolves this as a local symlink — no npm publish, no file copying. Changing `packages/spr/src/spr.ts` is immediately visible in `packages/spriter`, which depends on `@paradoxlab/spr`.
+pnpm resolves this as a local symlink — no npm publish, no file copying. Changing `packages/spr/src/spr.ts` is immediately visible in `packages/backpack`, which depends on `@paradoxlab/spr`.
 
 ---
 
@@ -111,7 +111,7 @@ When a dependency will be used across multiple packages, add it to the catalog i
 ### Remove a dependency
 
 ```bash
-pnpm remove sharp --filter @paradoxlab/spriter
+pnpm remove commander --filter @paradoxlab/backpack
 pnpm remove -D @types/node --filter @paradoxlab/spr
 ```
 
@@ -140,10 +140,10 @@ pnpm --filter @paradoxlab/spr test:cov
 ### In a workspace and its local dependencies
 
 ```bash
-pnpm --filter @paradoxlab/spriter... build
+pnpm --filter @paradoxlab/backpack... build
 ```
 
-The `...` includes the packages that `@paradoxlab/spriter` depends on (`@paradoxlab/spr`). Useful when you want to guarantee the full chain is built.
+The `...` includes the packages that `@paradoxlab/backpack` depends on (`@paradoxlab/dat`, `otb`, `spr` and `utils`). Useful when you want to guarantee the full chain is built.
 
 ### At the root (scripts from the root `package.json`)
 
@@ -212,7 +212,7 @@ In pnpm, `node_modules` works differently from npm:
 pnpm outdated -r
 
 # Update a specific dependency in one package
-pnpm update sharp --filter @paradoxlab/spriter
+pnpm update commander --filter @paradoxlab/backpack
 
 # Update the catalog (edit pnpm-workspace.yaml, then run)
 pnpm install

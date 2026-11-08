@@ -8,7 +8,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 - [CONTEXT.md](../../CONTEXT.md)
 - [ADR 0003 - `@paradoxlab/backpack` generates Asset Packs](../adr/0003-backpack-absorbs-thinger-and-spriter.md)
 - [ADR 0004 - Asset Pack format](../adr/0004-asset-pack-format.md)
-- [done-03-plan-appearance.md](done-03-plan-appearance.md) and [04-plan-backpack-content-sprites.md](04-plan-backpack-content-sprites.md) (prerequisites)
+- [done-03-plan-appearance.md](done-03-plan-appearance.md) and [done-04-plan-backpack-content-sprites.md](done-04-plan-backpack-content-sprites.md) (prerequisites)
 - `../mapeditor/docs/research/spike-s4.md` (pack contents, coverage, compatibility cases, sizes and timings)
 - `../mapeditor/spikes/s4-asset-pack/src/{build/compose.ts,build/build-pack.ts,load.ts,validate.ts,compat.ts}`
 
@@ -16,7 +16,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 - **Files by consumer (`pack.json`, `items.json`, `render.json`, `page-N.png`, per-category files later); columns in JSON; typed arrays and rich views from the loader; `sid → appearance` derived, not shipped**: see [ADR 0004](../adr/0004-asset-pack-format.md)
 - **Composition and pack format live in `backpack`; rules come from `@paradoxlab/appearance`**: see [ADR 0003](../adr/0003-backpack-absorbs-thinger-and-spriter.md)
-- **Atlas encoder and packer as in plan I; lossless always**: see [04-plan-backpack-content-sprites.md](04-plan-backpack-content-sprites.md)
+- **Atlas encoder and packer as in plan I; lossless always**: see [done-04-plan-backpack-content-sprites.md](done-04-plan-backpack-content-sprites.md)
 - **S4 rules kept** (validated in the spike): stack order from DAT flags; empty sprite is frame 0; identical frames deduplicated by their layer sprite-id tuple; `opaque` only when every frame is opaque; grounds and borders packed first
 
 ---
@@ -53,7 +53,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 ### Deliverables
 
-- `packages/backpack/src/pack/types.ts`: `PackManifest` (`schema`, `client`, `dat`, `spr`, `lineage`, `pages`, `counts`), `RenderJson` (appearances in columns plus the flat frame table with `stride: 7`)
+- `packages/backpack/src/pack/types.ts`: `PackManifest` (`schema`, `client`, `dat`, `spr`, `lineage`, `pages`, `counts`), `RenderJson` (appearances and the frame table, both in columns as ADR 0004 requires; the frame table reuses `FrameColumns` from plan 4)
 - `packages/backpack/src/pack/build-pack.ts`: `buildPack({ dat, spr, otb?, version })` returning in-memory files: compose, pack with priority (grounds and borders first) through the atlas packer, encode pages, write `pack.json`, `items.json` (content columns), `render.json`
 - `packages/backpack/src/index.ts` exports `buildPack`
 
@@ -80,10 +80,10 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 - `packages/backpack/src/load/load-pack.ts`: `loadPack(read: (path) => Promise<Uint8Array | string>, { parts })`:
   - reads `pack.json` first
   - `items.json` columns into typed arrays (`Uint16Array`/`Uint32Array`/`Int32Array`, names as `string[]`)
-  - `render.json` frames into `Uint16Array`
+  - each `render.json` frame column into its own `Uint16Array`
   - builds `sidToAppearance: Uint32Array`
   - `parts` lets a server load only `items`
-- `packages/backpack/src/load/views.ts`: `pack.items.get(sid)` returning an `ItemView` (identity, placement, gameplay, light, appearance) built on demand from the columns; `pack.appearances.get(index)`
+- views reuse `src/backpack-views.ts` from plan 4 (`viewContent`'s `items.get(sid)`, generalized to typed-array columns): `pack.items.get(sid)` returning an `ItemView` (identity, placement, gameplay, light, appearance) built on demand from the columns; `pack.appearances.get(index)`
 - `packages/backpack/src/load/compat.ts`: `checkCompatibility(manifest, otbmHeader)` returning `ok | warn | error` (S4 rules: lineage match, newer minor warns, other major errors)
 - `packages/backpack/src/load/readers.ts`: `urlReader(base)` (fetch) and, in `src/node-reader.ts` outside `/load`, `fsReader(dir)`
 
