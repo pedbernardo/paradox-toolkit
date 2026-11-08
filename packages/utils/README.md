@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@paradoxlab/utils.svg)](https://www.npmjs.com/package/@paradoxlab/utils)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](../../LICENSE)
 
-Shared binary reader and writer primitives used by all paradox-toolkit packages. Provides cursor-based reads and writes over `ArrayBuffer` / `Uint8Array`, version feature flags, and a typed parse error.
+Shared primitives of the paradox-toolkit packages: cursor-based binary readers and writers, the escaped readers and output buffer of the OTB and OTBM formats, per-file text codecs, version feature flags and the typed errors.
 
 ## Installation
 
@@ -11,101 +11,80 @@ Shared binary reader and writer primitives used by all paradox-toolkit packages.
 npm install @paradoxlab/utils
 ```
 
-## How to Use
+## How to use
 
 ```ts
-import { createBinaryReader, createBinaryWriter, ParseError } from '@paradoxlab/utils'
+import { createBinaryReader, createBinaryWriter, windows1252 } from '@paradoxlab/utils'
 
-// Reading
-const reader = createBinaryReader(buffer)
-const magic  = reader.u32()   // read 4 bytes as uint32
-const count  = reader.u16()   // read 2 bytes as uint16
-const name   = reader.str()   // read length-prefixed UTF-8 string
-reader.skip(4)                // advance cursor by 4 bytes
+// Reading: every read advances the cursor; integers are little-endian
+const reader = createBinaryReader(bytes, { text: windows1252 })
+const signature = reader.u32()
+const count = reader.u16()
+const name = reader.str(count) // `count` bytes decoded with the reader's codec
 
-// Writing
+// Writing: the buffer grows as needed
 const writer = createBinaryWriter()
-writer.u32(0xFFFFFF00)
-writer.u16(count)
-writer.str('Green Grass')
-const result: Uint8Array = writer.bytes()
-
-// Escaped sequences (OTB / OTBM formats)
-import { createEscapedBinaryWriter } from '@paradoxlab/utils'
-const esc = createEscapedBinaryWriter()
-esc.escU16(100)   // writes 0xFD escape prefix when needed
+writer.u32(0xffffff00)
+writer.str('Green Grass') // encoded with the writer's codec, no length prefix
+const out: Uint8Array = writer.finish()
 ```
 
-## API
+## Binary readers and writers
 
-### `createBinaryReader(buffer: ArrayBuffer | Uint8Array)`
+`createBinaryReader(source, { text? })` reads an `ArrayBuffer` or `Uint8Array`:
 
-Returns a cursor-based reader. All reads advance the cursor.
-
-| Method | Returns | Description |
-|---|---|---|
-| `u8()` | `number` | Read unsigned 8-bit integer |
-| `u16()` | `number` | Read unsigned 16-bit integer (LE) |
-| `u32()` | `number` | Read unsigned 32-bit integer (LE) |
-| `f64()` | `number` | Read 64-bit float (LE) |
-| `u16arr(n)` | `number[]` | Read `n` uint16 values |
-| `str()` | `string` | Read uint16-prefixed UTF-8 string |
-| `skip(n)` | `void` | Advance cursor by `n` bytes |
-| `seek(pos)` | `void` | Move cursor to absolute position |
-| `seekByte(byte)` | `number` | Advance until `byte` found; returns position or -1 |
-| `peekU8()` | `number` | Read u8 without advancing cursor |
-| `peekU16()` | `number` | Read u16 without advancing cursor |
-| `peekU32()` | `number` | Read u32 without advancing cursor |
-
-### `createBinaryWriter()`
-
-Returns an auto-expanding writer. Call `.bytes()` to get the final `Uint8Array`.
-
-| Method | Description |
+| Member | Description |
 |---|---|
-| `u8(n)` | Write unsigned 8-bit integer |
-| `u16(n)` | Write unsigned 16-bit integer (LE) |
-| `u32(n)` | Write unsigned 32-bit integer (LE) |
-| `i8(n)` | Write signed 8-bit integer |
-| `i32(n)` | Write signed 32-bit integer (LE) |
-| `str(s)` | Write uint16-prefixed UTF-8 string |
-| `raw(bytes)` | Append raw bytes |
-| `bytes()` | Return written data as `Uint8Array` |
+| `u8()`, `u16()`, `u32()` | Unsigned integers, little-endian |
+| `str(n)` | `n` bytes decoded with the text codec |
+| `bytes(n)`, `u16arr(n)` | Raw bytes; `n` u16 values |
+| `skip(n)`, `seek(pos)` | Move the cursor |
+| `seekByte(byte)`, `seekAnyByte(bytes)` | Advance to the next occurrence |
+| `peekU8At(pos)` | Read without moving |
+| `isEOF`, `offset`, `byteLength` | Cursor state |
 
-### `createEscapedBinaryWriter()`
+`createBinaryWriter({ text? })` has `u8`, `u16`, `u32`, `str`, `bytes`, `length` and `finish()`.
 
-Extends `createBinaryWriter` with escape-sequence-aware writes (OTB / OTBM format: `0xFD` prefix before reserved bytes).
+### OTB and OTBM: escaped bytes
 
-| Method | Description |
+The OTB and OTBM formats reserve 0xFE (node start) and 0xFF (node end); a data byte ≥ 0xFD is written after the escape byte 0xFD.
+
+- `createEscapedBinaryReader(source, { escapeMarker?, text? })` adds `escU8`, `escU16`, `escU32`, `escU64`, `escStr(n)`, `escBytes(n)` and `seekNodeBoundary` to the reader.
+- `createEscapedSliceReader(bytes, options)` reads windows of one buffer without allocating (`seekWindow(begin, end)`, then `u8`, `u16`, `u32`, `str`, `skip`, `rest()`).
+- `createOutputBuffer({ initialBytes?, text? })` is the writer side: raw and escaped writes (`escU8` … `escU64`, `escBytes`, `escStr` with a u16 length), `mark()` and `truncate(mark)` to drop a group, and `take()` to hand out what was written in chunks.
+
+## Text codecs
+
+Strings inside one file share one encoding. Every reader and writer that handles strings takes a `text` codec, `windows1252` by default:
+
+| Codec | For |
 |---|---|
-| `escU8(n)` | Write u8 with escape prefix if reserved |
-| `escU16(n)` | Write u16 with escape prefix on reserved bytes |
-| `escU32(n)` | Write u32 with escape prefix on reserved bytes |
-| `escRaw(bytes)` | Write raw bytes escaping reserved values |
+| `windows1252` | Western European (default) |
+| `windows1250` | Central European (Polish, Czech, …) |
+| `windows1251` | Cyrillic |
+| `utf8` | Files written in UTF-8 |
 
-### `getVersionFeatures(version: number)`
+Each codec gives back the original bytes of a string that was not edited (`encode(decode(bytes))` is the identity, invalid UTF-8 included), and `encode` throws `UnencodableTextError` for a character the codec cannot represent (`canEncode` checks first). `detectTextCodec(strings)` suggests a codec for a file's raw strings, with a confidence and decoded samples.
 
-Returns feature flags for a given client version.
+## Versions
 
 ```ts
-import { getVersionFeatures } from '@paradoxlab/utils'
-const features = getVersionFeatures(772)
-// → { patternZ: false, extendedSprites: false, frameDurations: false, ... }
+import { getVersionFeatures, isVersionSupported, SUPPORTED_VERSIONS } from '@paradoxlab/utils'
+
+getVersionFeatures(772)
+// → { patternZ: true, transparency: true, extendedSprites: false, animations: false, ... }
 ```
 
-### `isVersionSupported(version: number): boolean`
+`getVersionFeatures` throws `UnsupportedVersionError` for a version outside `SUPPORTED_VERSIONS`.
 
-Returns `true` if the version is in the supported range.
+## Errors
 
-### `ParseError`
-
-Typed error thrown by all toolkit readers on malformed input.
-
-```ts
-import { ParseError } from '@paradoxlab/utils'
-try { Dat(772).load(badBuffer) }
-catch (e) { if (e instanceof ParseError) console.error(e.message) }
-```
+| Error | When |
+|---|---|
+| `ParseError` | Malformed or unexpected binary data; thrown by every parser |
+| `UnsupportedVersionError` | A client version outside the supported list |
+| `UnencodableTextError` | Writing a character the file's codec cannot represent |
+| `BufferOverflowError`, `ByteNotFoundError` | A read past the end, or a byte that is not there |
 
 ---
 

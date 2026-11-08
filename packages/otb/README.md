@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@paradoxlab/otb.svg)](https://www.npmjs.com/package/@paradoxlab/otb)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](../../LICENSE)
 
-Parser and writer for OTServers `items.otb` binary format. Reads item metadata (server IDs, client IDs, flags, and TLV attributes) used by TFS and compatible OTServer implementations.
+Parser and writer for OTServer's `items.otb`: every item's server id (sid), client id (cid), flags and attributes.
 
 ## Installation
 
@@ -11,87 +11,69 @@ Parser and writer for OTServers `items.otb` binary format. Reads item metadata (
 npm install @paradoxlab/otb
 ```
 
-## How to Use
+## How to use
 
 ```ts
 import { readFileSync, writeFileSync } from 'node:fs'
-import { Otb } from '@paradoxlab/otb'
+import { Otb, inlineCountOf } from '@paradoxlab/otb'
 
-// Parse
 const file = Otb().load(readFileSync('items.otb'))
+file.schemaVersion // '3.57.62': major (the OTB lineage), minor and build
+file.count
 
-console.log(file.count) // total item count
+const coin = file.get(2148) // by sid
+coin?.cid
+coin?.flags.stackable // true
+coin?.attributes.name // 'gold coin'
 
-// Access by server ID
-const grass = file.get(100)
-// → { sid: 100, cid: 1, group: 'ground', flags: OtbFlags, attributes: OtbAttributes }
-
-// Inspect attributes
-console.log(grass?.attributes.name)    // 'Grass'
-console.log(grass?.attributes.weight) // 0
-
-// Iterate all items
-for (const item of file.entries()) {
-  if (item.flags.stackable) {
-    console.log(item.sid, item.attributes.name)
-  }
+for (const [sid, item] of file.entries()) {
+  if (item.flags.hangable) console.log(sid, item.attributes.name)
 }
 
-// Mutate and write back
-const otb = Otb()
-const newFile = otb.load(readFileSync('items.otb'))
-newFile.items[0]!.flags.stackable = true
-writeFileSync('out.otb', Otb().write(newFile))
+file.items[0]!.flags.stackable = true
+writeFileSync('out.otb', Otb().write(file))
 
-// Validate without fully loading
-const result = Otb().validate(readFileSync('items.otb'))
-// → { ok: true } | { ok: false, error: string }
+// What reading an OTBM v1 map needs: which sids store an untagged count byte
+const hasInlineCount = inlineCountOf(file)
 ```
 
 ## API
 
 ### `Otb()`
 
-Factory returning `{ load, write, validate }`. Unlike DAT/SPR, OTB has no version parameter - the schema version is read from the file header.
+Returns `{ load, write, validate }`. There is no version parameter: the OTB version is read from the file.
 
-### `.load(buffer: ArrayBuffer | Uint8Array): OtbFile`
+| Method | Description |
+|---|---|
+| `load(buffer)` | Parses `items.otb` into an `OtbFile`. Throws `ParseError` on malformed input |
+| `write(file)` | Serializes an `OtbFile` (or `{ schemaVersion, items }`) back to bytes, escaping reserved bytes |
+| `validate(buffer)` | Checks the header only; throws `ParseError` on a mismatch |
 
-Parse an `items.otb` binary. Throws `ParseError` on malformed input.
-
-### `.write(data: OtbWriteInput): Uint8Array`
-
-Serialize an `OtbFile` (or compatible object) back to binary. Escape sequences are applied automatically.
-
-### `.validate(buffer: ArrayBuffer | Uint8Array): { ok: boolean; error?: string }`
-
-Check the root node marker and schema version without parsing items.
+`inlineCountOf(file)` returns a `(sid) => boolean` predicate, backed by one bit per sid, for `Otbm({ hasInlineCount })`.
 
 ### `OtbFile`
 
-| Property | Type | Description |
-|---|---|---|
-| `schemaVersion` | `number` | OTB schema version (typically 3) |
-| `count` | `number` | Total number of items |
-| `items` | `OtbItem[]` | All parsed items |
-| `.get(sid)` | `OtbItem \| undefined` | Look up item by server ID |
-| `.entries()` | `Iterable<OtbItem>` | Iterate all items |
+| Member | Description |
+|---|---|
+| `schemaVersion` | `'major.minor.build'`, e.g. `'3.57.62'`; the major and minor are the version a map's header names |
+| `count`, `items` | Every `OtbItem`, in file order |
+| `get(sid)` | One item by sid |
+| `entries()` | `[sid, item]` pairs |
 
 ### `OtbItem`
 
-| Property | Type | Description |
-|---|---|---|
-| `sid` | `number` | Server item ID |
-| `cid` | `number` | Client item ID (DAT lookup key) |
-| `group` | `OtbGroup` | `'none' \| 'ground' \| 'container' \| 'weapon' \| ...` |
-| `flags` | `OtbFlags` | Boolean properties: `stackable`, `usable`, `moveable`, `pickupable`, `rotatable`, ... |
-| `attributes` | `OtbAttributes` | TLV attributes: `name`, `weight`, `attack`, `defense`, `armor`, `decayTo`, ... |
+| Field | Description |
+|---|---|
+| `sid`, `cid` | Server id and client id; many sids can share one cid |
+| `group` | Item group number from the file |
+| `flags` | Every flag as a boolean: `unpassable`, `blockMissiles`, `blockPathfinder`, `hasElevation`, `useable`, `pickupable`, `moveable`, `stackable`, the five `floorChange*`, `alwaysOnTop`, `readable`, `rotable`, `hangable`, `hookEast`, `hookSouth`, `cannotDecay`, `allowDistRead`, `clientDuration`, `clientCharges`, `ignoreLook`, `isAnimation`, `fullGround`, `forceUse` |
+| `attributes` | The attributes the item has: `name`, `description`, `speed`, `weight`, `spriteHash`, `minimapColor`, `maxItems`, `rotateTo`, `maxWriteLength`, `maxReadLength`, `lightLevel`, `lightColor`, `alwaysOnTopOrder`, `wareId`, `classification` |
 
-## Format Notes
+## Format notes
 
-- The binary format uses a tree structure: a root node wraps item nodes, each terminated by a `0xFF` end-of-node byte.
-- Reserved bytes (`0xFD`, `0xFE`, `0xFF`) within item data are escaped with a `0xFD` prefix (similar to OTBM). The writer handles this automatically.
-- Attributes are encoded as TLV (type, length, value) sequences. Unknown attribute types are preserved verbatim during round-trips.
-- The schema version in the root node header determines which flags and attribute IDs are valid. Schema version 3 is standard for TFS 1.x.
+- A tree of nodes: a root node holding one node per item; 0xFE starts a node and 0xFF ends it, and data bytes from 0xFD up are escaped with 0xFD.
+- Attributes are `(id: u8, length: u16, value)`. Attribute ids the parser does not know are skipped, so they are not written back.
+- Names and descriptions are read and written as windows-1252, byte for byte.
 
 ---
 

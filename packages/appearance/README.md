@@ -36,4 +36,4 @@ const spriteId = thing.spriteIds[index]
 | `accumulateElevation(current, item)` | Elevation after stacking an item, capped at `MAX_ELEVATION` (24 px) | `Tile` drawing |
 | `legacyAnimationPhase(frames, timeMs)` | Animation phase from the clock, one phase every `LEGACY_PHASE_MS` (500 ms) | legacy animation |
 
-`SpriteLayout.layers` defaults to 1, which is also the layout of a pre-composed frame (an atlas where an item's layers were already stacked).
+`SpriteLayout.layers` defaults to 1, which is also the layout of a pre-composed frame (an atlas where an item's layers were already stacked, as in the Asset Packs of `@paradoxlab/backpack`).

@@ -3,7 +3,7 @@
 [![npm](https://img.shields.io/npm/v/@paradoxlab/dat.svg)](https://www.npmjs.com/package/@paradoxlab/dat)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](../../LICENSE)
 
-Parser and writer for `.dat` binary format. Reads and writes visual/layout definitions for items, creatures, effects, and missiles.
+Parser and writer for the client's `.dat` file: the sprite layout and flags of every item, creature, effect and missile.
 
 ## Installation
 
@@ -11,89 +11,71 @@ Parser and writer for `.dat` binary format. Reads and writes visual/layout defin
 npm install @paradoxlab/dat
 ```
 
-## How to Use
+## How to use
 
 ```ts
 import { readFileSync, writeFileSync } from 'node:fs'
 import { Dat } from '@paradoxlab/dat'
 
-// Parse
-const dat = Dat()                               // auto-detect version from file signature
-const file = dat.load(readFileSync('772.dat'))
+const dat = Dat() // version detected from the file signature; or Dat(772)
+const file = dat.load(readFileSync('client.dat'))
 
-// Access by group and client ID
-const grass = file.get('item', 1)              // { flags, width, height, layers, patterns, ... }
-const demon  = file.get('creature', 35)
+// By group and client id
+const grass = file.get('items', 102)
+grass?.layout // { width, height, layers, patternX, patternY, patternZ, frames, ... }
+grass?.flags.ground // { speed: 150 }
+const creature = file.get('creatures', 35)
 
-// Iterate all things
-for (const entry of file.entries()) {
-  console.log(entry.group, entry.id, entry.thing.flags)
-}
+// Every thing, items first, then creatures, effects and missiles
+for (const thing of file.entries()) console.log(thing.group, thing.cid, thing.spriteIds.length)
 
-// Mutate and write back
-file.get('item', 100)!.flags.stackable = true
+// Change and write back
+file.get('items', 100)!.flags.stackable = true
 writeFileSync('out.dat', Dat(772).write(file))
 
-// Validate a buffer without fully loading
-const result = Dat(772).validate(readFileSync('772.dat'))
-// → { ok: true } | { ok: false, error: string }
+// Check the signature without parsing; throws ParseError on a mismatch
+Dat(772).validate(readFileSync('client.dat'))
 ```
 
 ## API
 
-### `Dat(version?: number)`
+### `Dat(version?, { strict? })`
 
-Factory that returns a `{ load, write, validate }` object. Pass a version to lock the parser to a specific client; omit it for auto-detection from the file's magic signature.
+Returns `{ load, write, validate }`. With a version, the file's signature must match it; without one, the version is detected from the signature. A version outside the supported list throws `UnsupportedVersionError`.
 
-```ts
-const dat = Dat()     // auto-detect
-const dat = Dat(772)  // 7.72 client
-const dat = Dat(1098) // 10.98 client
-```
+By default a thing that cannot be parsed is skipped with a warning; `{ strict: true }` throws instead.
 
-### `.load(buffer: ArrayBuffer | Uint8Array): DatFile`
-
-Parse a `.dat` binary. Throws `ParseError` on malformed input.
-
-### `.write(data: DatWriteInput): Uint8Array`
-
-Serialize a `DatFile` (or compatible object) back to binary. `DatWriteInput` is structurally compatible with the `DatFile` returned by `.load()`.
-
-### `.validate(buffer: ArrayBuffer | Uint8Array): { ok: boolean; error?: string }`
-
-Check the signature and header without fully parsing all things. Safe to call on untrusted input.
+| Method | Description |
+|---|---|
+| `load(buffer)` | Parses a `.dat` into a `DatFile`. Throws `ParseError` on malformed input |
+| `write(file)` | Serializes a `DatFile` (or `{ version, signature, things }`) back to bytes |
+| `validate(buffer)` | Checks the signature only; throws `ParseError` on a mismatch |
 
 ### `DatFile`
 
-| Property | Type | Description |
-|---|---|---|
-| `version` | `number` | Detected client version |
-| `signature` | `number` | 32-bit file signature |
-| `counts` | `DatCounts` | `{ items, creatures, effects, missiles }` |
-| `things` | `DatThing[]` | Flat array of all things in file order |
-| `.get(group, id)` | `DatThing \| undefined` | Look up by group and client ID |
-| `.entries()` | `Iterable<{ group, id, thing }>` | Iterate all things with their group and ID |
-
-### `DatThing`
-
-Every entry exposes the standard layout properties plus a `flags` object:
-
-| Property | Description |
+| Member | Description |
 |---|---|
-| `flags` | Boolean flags (`stackable`, `container`, `unpassable`, `animated`, ...) |
-| `width` / `height` | Sprite grid dimensions in 32-px tiles |
-| `layers` | Number of renderer layers (e.g. 2 = body + mount) |
-| `patternX` / `patternY` / `patternZ` | Pattern counts per axis |
-| `frames` | Animation frame count |
-| `lightLevel` / `lightColor` | Light source properties |
-| `displacement` | `{ x, y }` rendering offset |
-| `elevation` | Height for stacking/3D offset |
+| `version`, `signature` | Client version and 32-bit signature |
+| `counts` | `{ itemsMaxCid, creatures, effects, missiles }` |
+| `things` | Every `Thing`, in client id order per group |
+| `get(group, cid)` | One thing; `group` is `'items'`, `'creatures'`, `'effects'` or `'missiles'` |
+| `entries()` | Iterates every `Thing` |
 
-## Format Notes
+### `Thing`
 
-- The signature at offset 0 encodes the client version as a packed integer. Auto-detection reads it; explicit version bypasses the check.
-- Flags are split into "simple" (single-byte flags at fixed bit positions) and "complex" (TLV attributes like `minimapColor`, `tradeAs`). Both are decoded into a flat `flags` object.
-- Versions before 7.55 do not have `patternZ`; before 9.6 do not have frame durations. `getVersionFeatures()` from `@paradoxlab/utils` exposes these flags if you need them.
+| Field | Description |
+|---|---|
+| `cid`, `group` | Client id and group |
+| `flags` | Only the flags the thing has: `true` for plain flags (`stackable`, `container`, `unpassable`, …), an object for flags with data (`ground: { speed }`, `lightInfo: { level, color }`, `hasOffset: { offsetX, offsetY }`, `hasElevation: { height }`, `minimap: { color }`, `market`, …) |
+| `layout` | `{ width, height, layers, patternX, patternY, patternZ, frames, realSize, exactSize, animation? }`; `animation` holds frame timing (10.30+) |
+| `spriteIds` | Sprite ids in DAT order (see `spriteIndex` in `@paradoxlab/appearance`) |
+| `frameGroups` | Creature frame groups (idle, moving; 10.90+); `layout` and `spriteIds` mirror the last group |
+
+## Format notes
+
+- The signature at offset 0 identifies the client version.
+- Flags are a list of one-byte ids, some followed by data, ending with 0xFF; the ids shift between versions, and `dat` maps them to the names above.
+- Versions differ in pattern z (7.55+), extended sprite ids (9.60+), frame timing (10.30+) and frame groups (10.90+); `getVersionFeatures()` from `@paradoxlab/utils` lists them per version.
 
 ---
 
