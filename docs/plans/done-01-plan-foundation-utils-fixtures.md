@@ -111,7 +111,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 - **No `DEFAULT_TEXT_CODEC` export:** knip flagged it as a duplicate of `windows1252`, which is the documented default.
 - **`createEscapedBinaryWriter` removed here.** The 0.2 `otbm` writer moved to `createOutputBuffer`, and its strings are now windows-1252 in both directions; before, they were read as ISO-8859-1 and written as the low byte.
 - **`fast-check` ^4.10.2 in the catalog.**
-- **`dat` and `otb` got no `text` option, against the deliverable below.** Their strings are Tibia content, not user text: of the 17 OTBs measured, only two names are non-ASCII, and both were already corrupted at the source. Both formats use windows-1252 in both directions, and ADR 0002 was amended to match. The codec option stays in `utils` and in the OTBM plan.
+- **`dat` and `otb` got no `text` option, against the deliverable below.** Their strings are game content shipped with the client, not user text: of the 17 OTBs measured, only two names are non-ASCII, and both were already corrupted at the source. Both formats use windows-1252 in both directions, and ADR 0002 was amended to match. The codec option stays in `utils` and in the OTBM plan.
 
 ### Deliverables
 

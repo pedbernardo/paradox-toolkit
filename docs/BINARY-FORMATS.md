@@ -477,7 +477,7 @@ All four parsers are built on the readers and writers of `@paradoxlab/utils`. Th
 
 Strings in DAT (market names), OTB (item names, descriptions) and OTBM (texts, names, map data) are stored as a u16 byte length followed by the bytes, with no record of their encoding (see [ADR 0002](adr/0002-text-codec-per-file.md)):
 
-- **DAT and OTB** strings are Tibia content (English, written by tools) and are always read and written as windows-1252.
+- **DAT and OTB** strings are game content shipped with the client (English, written by tools) and are always read and written as windows-1252.
 - **OTBM** strings are written by end users, and each community used its own Windows code page, so the encoding is a property of the map, chosen by the consumer from these codecs:
 
 | Codec | Languages | Notes |

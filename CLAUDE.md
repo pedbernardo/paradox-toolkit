@@ -58,9 +58,10 @@ Git hooks (Lefthook): pre-commit runs `lint-staged` (oxfmt + oxlint --fix on sta
 @paradoxlab/otb       → @paradoxlab/utils
 @paradoxlab/otbm      → @paradoxlab/utils
 @paradoxlab/utils     → (none)
+@paradoxlab/appearance → (none)
 ```
 
-`@paradoxlab/spriter` and `@paradoxlab/thinger` are build tools (CLI + API). The other five are pure parsers/writers.
+`@paradoxlab/spriter` and `@paradoxlab/thinger` are build tools (CLI + API). `@paradoxlab/appearance` holds the pure visual rules of thing types (sprite index, patterns, elevation). The other five are pure parsers/writers.
 
 ### Package anatomy
 

@@ -8,7 +8,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 - [CONTEXT.md](../../CONTEXT.md)
 - [ADR 0003 - `@paradoxlab/backpack` generates Asset Packs](../adr/0003-backpack-absorbs-thinger-and-spriter.md)
 - [ADR 0004 - Asset Pack format](../adr/0004-asset-pack-format.md)
-- [03-plan-appearance.md](03-plan-appearance.md) and [draft-plan-backpack-content-sprites.md](draft-plan-backpack-content-sprites.md) (prerequisites)
+- [done-03-plan-appearance.md](done-03-plan-appearance.md) and [04-plan-backpack-content-sprites.md](04-plan-backpack-content-sprites.md) (prerequisites)
 - `../mapeditor/docs/research/spike-s4.md` (pack contents, coverage, compatibility cases, sizes and timings)
 - `../mapeditor/spikes/s4-asset-pack/src/{build/compose.ts,build/build-pack.ts,load.ts,validate.ts,compat.ts}`
 
@@ -16,7 +16,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 - **Files by consumer (`pack.json`, `items.json`, `render.json`, `page-N.png`, per-category files later); columns in JSON; typed arrays and rich views from the loader; `sid → appearance` derived, not shipped**: see [ADR 0004](../adr/0004-asset-pack-format.md)
 - **Composition and pack format live in `backpack`; rules come from `@paradoxlab/appearance`**: see [ADR 0003](../adr/0003-backpack-absorbs-thinger-and-spriter.md)
-- **Atlas encoder and packer as in plan I; lossless always**: see [draft-plan-backpack-content-sprites.md](draft-plan-backpack-content-sprites.md)
+- **Atlas encoder and packer as in plan I; lossless always**: see [04-plan-backpack-content-sprites.md](04-plan-backpack-content-sprites.md)
 - **S4 rules kept** (validated in the spike): stack order from DAT flags; empty sprite is frame 0; identical frames deduplicated by their layer sprite-id tuple; `opaque` only when every frame is opaque; grounds and borders packed first
 
 ---

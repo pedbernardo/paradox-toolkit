@@ -1,6 +1,6 @@
 # Paradox Toolkit
 
-Parsers, writers and build tools for OTServer/Tibia client and map formats (`.dat`, `.spr`, `.otb`, `.otbm`), published as `@paradoxlab/*`. The toolkit is self-contained: consumers such as the Paradox Map editor and the paradox-engine depend on it, never the other way around.
+Parsers, writers and build tools for OTServer client and map formats (`.dat`, `.spr`, `.otb`, `.otbm`), published as `@paradoxlab/*`. The toolkit is self-contained: consumers such as the Paradox Map editor and the paradox-engine depend on it, never the other way around.
 
 ## Language
 
