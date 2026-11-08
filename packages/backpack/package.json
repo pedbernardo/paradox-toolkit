@@ -1,0 +1,65 @@
+{
+  "name": "@paradoxlab/backpack",
+  "version": "0.0.0",
+  "private": false,
+  "description": "Builds and loads Asset Packs for OTServer clients and editors: item content by sid, sprite atlases, composed frames.",
+  "keywords": [
+    "OTServer",
+    "asset pack",
+    "atlas",
+    "spritesheet",
+    "toolkit"
+  ],
+  "license": "MIT",
+  "author": "Pedro Bernardo <pedrovbernardo@gmail.com>",
+  "bin": {
+    "backpack": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./content": {
+      "import": "./dist/content.js",
+      "types": "./dist/content.d.ts"
+    },
+    "./sprites": {
+      "import": "./dist/sprites.js",
+      "types": "./dist/sprites.d.ts"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:cov": "vitest run --coverage",
+    "test:local": "vitest run --config vitest.local.config.ts",
+    "bench:sprites": "node --import tsx/esm bench/sprites.bench.ts"
+  },
+  "dependencies": {
+    "@paradoxlab/dat": "workspace:*",
+    "@paradoxlab/otb": "workspace:*",
+    "@paradoxlab/spr": "workspace:*",
+    "commander": "catalog:"
+  },
+  "devDependencies": {
+    "@paradoxlab/fixtures": "workspace:*",
+    "@types/node": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "fast-check": "catalog:",
+    "tsup": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
