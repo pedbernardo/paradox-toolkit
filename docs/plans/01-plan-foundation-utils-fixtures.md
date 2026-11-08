@@ -26,7 +26,14 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** Every test in the repository can find a map, its `items.otb` and its client files by id, and nothing proprietary can be committed by accident.
 
-**Status:** `not started`
+**Status:** `completed`. Commit per phase: `f8ba887` (code), followed by a `docs` commit for the README and this plan.
+
+**As built:**
+- **The helper ports the editor's API** (`createFixtures`, `mapFixture`, `itemsFixture`, `clientFixture`, `describeWithFixture`), plus `presentMaps`, `readFixture` and `scanOtbm`. This replaces the planned `fixture(id)`: the editor's API had already been validated and returns `undefined`, not `null`.
+- **The code lives in `fixtures/src/`.** The `.gitignore` ignores `fixtures/client/` and everything under `maps/` and `items/` except `*.fixture.*`.
+- **A twelfth map was added:** `small-wide-otbm1-otb1-3`, the toolkit's former `local.large-v0`, which had no counterpart in the editor.
+- **The 0.2 `otbm` tests point at `fixtures/maps` by path** instead of going through the helper, because Phase 10 of the otbm plan deletes them.
+- **The scan confirms, without any reader,** the two stray tiles in `large-small-areas` (`strayTiles: 2`).
 
 ### Deliverables
 
