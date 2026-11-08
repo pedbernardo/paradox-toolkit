@@ -65,7 +65,7 @@ writePack('./pack', pack)
 Load it anywhere; `@paradoxlab/backpack/load` imports nothing from Node or other packages:
 
 ```ts
-import { checkCompatibility, loadPack, urlReader } from '@paradoxlab/backpack/load'
+import { ItemFlag, checkCompatibility, loadPack, urlReader } from '@paradoxlab/backpack/load'
 
 const pack = await loadPack(urlReader('https://cdn.example/packs/860'), {
   // Refuse a pack whose items do not match the map, before reading anything else
@@ -78,9 +78,12 @@ const pack = await loadPack(urlReader('https://cdn.example/packs/860'), {
 
 const coin = pack.items?.get(2148)
 coin?.name // 'gold coin'
+coin?.has(ItemFlag.Stackable) // true
 coin?.appearance?.frame(0) // row in pack.frames: page, x, y, w, h, offsetX, offsetY
 pack.manifest.pages // the PNGs to load as textures
 ```
+
+`/load` also exports the constants that read a loaded pack (`ItemFlag`, `FloorChange`, `StackOrder`, `AppearanceFlag`), so a page that only loads packs does not need `/content`, which carries the content builder.
 
 `fsReader(dir)` reads a pack from disk in Node. Drawing a stack of 7 gold coins with `stackablePatterns` and `spriteIndex` from `@paradoxlab/appearance` is in [the pack example](../../examples/src/pack-load.ts).
 

@@ -55,7 +55,7 @@ Every OTB entry is an item; items that share a client id keep their own sid. Gam
 | `writableLength`, `writableOnceLength`, `rotateTo`, `minimapColor`, `lensHelp` | Numbers, -1 when absent |
 | `appearance` | Row in `appearances`, or -1 when the client has no thing for the cid |
 
-`ItemFlag` bits, from bit 0: walkable, blocks missile (and sight: no client file tells them apart), blocks pathfinder, full ground, container, stackable, moveable, pickupable, useable, force use, multi use, readable, allow distance read, fluid container, fluid, cannot decay, hangable, hook east, hook south, vertical, horizontal, rotatable, always on top, is animation, client charges, client duration, ignore look. The constants are exported as `ItemFlag` and `FloorChange`.
+`ItemFlag` bits, from bit 0: walkable, blocks missile (and sight: no client file tells them apart), blocks pathfinder, full ground, container, stackable, moveable, pickupable, useable, force use, multi use, readable, allow distance read, fluid container, fluid, cannot decay, hangable, hook east, hook south, vertical, horizontal, rotatable, always on top, is animation, client charges, client duration, ignore look. The constants are exported as `ItemFlag` and `FloorChange`, with `StackOrder` and `AppearanceFlag`, from the package root, `/content` and `/load`.
 
 ### `appearances`, `creatures`, `effects`, `missiles`: one row per client id
 
