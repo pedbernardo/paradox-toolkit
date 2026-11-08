@@ -54,7 +54,7 @@ for (const id of targets) {
 const cell = (id: string, operation: string): string => {
   const r = results.find((x) => x.id === id && x.operation === operation)
   if (r === undefined || r.skipped) return '-'
-  const memory = operation === 'copy' || operation === 'load' ? ` · ${r.extraMb} MB` : ''
+  const memory = ['copy', 'load', 'compose'].includes(operation) ? ` · ${r.extraMb} MB` : ''
   return `${r.ms.toLocaleString('en-US')} ms${memory}`
 }
 const header = `| Fixture | MB | ${operations.join(' | ')} |`

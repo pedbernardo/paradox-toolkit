@@ -23,11 +23,14 @@ if (map === undefined) {
 }
 const { bytes, options } = loadMap(map)
 const otbm = Otbm(options)
-/** A tile source as an editor keeps it: 256x256 chunks with small-integer keys, so V8 keeps them as Smis. */
+/**
+ * A tile source as the editor keeps its map: 32x32 chunks, with keys that stay small integers
+ * (chunk x and y in 11 bits each, floor in 4), so V8 never boxes them.
+ */
 function tileSourceOf(document: OtbmDocument): OtbmTileSource {
   const chunks = new Map<number, Map<number, OtbmDocumentTile>>()
-  const chunkKey = (x: number, y: number, z: number) => (z << 16) | ((y >> 8) << 8) | (x >> 8)
-  const cellKey = (x: number, y: number) => ((y & 0xff) << 8) | (x & 0xff)
+  const chunkKey = (x: number, y: number, z: number) => (x >> 5) | ((y >> 5) << 11) | (z << 22)
+  const cellKey = (x: number, y: number) => ((y & 31) << 5) | (x & 31)
   const find = (x: number, y: number, z: number) =>
     chunks.get(chunkKey(x, y, z))?.get(cellKey(x, y))
   for (const group of [document.beforeMapData, document.entries, document.afterMapData]) {
@@ -70,7 +73,16 @@ function tileSourceOf(document: OtbmDocument): OtbmTileSource {
   }
 }
 
+let composeOf: (() => ReturnType<typeof composeOtbm>) | undefined
+
 const gc = (globalThis as { gc?: () => void }).gc ?? (() => {})
+
+// ArrayBuffer memory is released after the collection that frees it, so let it settle before reading.
+const settle = async (): Promise<void> => {
+  gc()
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  gc()
+}
 
 // Each operation is built only when asked for, so no other data sits in the heap while it runs.
 const operations: Record<string, () => () => unknown> = {
@@ -94,6 +106,7 @@ const operations: Record<string, () => () => unknown> = {
     otbm.read(bytes, [layout.visitor, document.visitor])
     const source = layout.layout()
     const tiles = tileSourceOf(document.document())
+    composeOf = () => composeOtbm(source, tiles)
     return () => {
       let total = 0
       for (const chunk of otbm.writeStream(composeOtbm(source, tiles))) total += chunk.length
@@ -129,12 +142,27 @@ void retained
 // Memory of a copy, apart from timing: what the writer holds (its buffer and the chunk in hand),
 // sampled after a collection at every chunk so dropped chunks do not count.
 if (operation === 'copy') {
-  gc()
+  await settle()
   const baseline = process.memoryUsage().arrayBuffers
   for (const chunk of otbm.writeStream(otbm.source(bytes))) {
     void chunk
-    gc()
+    await settle()
     extraMb = Math.max(extraMb, (process.memoryUsage().arrayBuffers - baseline) / 2 ** 20)
+  }
+}
+// Memory of a compose: what it adds to the model already in memory (writer buffer, the chunk in
+// hand, the composer's per-area bitmaps), heap and ArrayBuffers, sampled after a collection every
+// 8 chunks (a collection per chunk takes minutes with a whole map in the heap).
+if (operation === 'compose' && composeOf !== undefined) {
+  const memory = () => process.memoryUsage().heapUsed + process.memoryUsage().arrayBuffers
+  await settle()
+  const baseline = memory()
+  let index = 0
+  for (const chunk of otbm.writeStream(composeOf())) {
+    void chunk
+    if (index++ % 8 !== 0) continue
+    await settle()
+    extraMb = Math.max(extraMb, (memory() - baseline) / 2 ** 20)
   }
 }
 console.log(
