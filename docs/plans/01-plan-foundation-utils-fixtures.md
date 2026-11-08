@@ -76,7 +76,9 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** Writers in the toolkit escape into one growing buffer per file and hand out chunks of a configurable size, with no allocation per node or per area.
 
-**Status:** `not started`
+**Status:** `completed`. Commit per phase: `a18aaeb`.
+
+**As built:** `createEscapedBinaryWriter` was removed in Phase 3, not here: the 0.2 `otbm` writer needed `escStr`, which only arrived with the text codecs. `escU64` was added for the OTB writer.
 
 ### Deliverables
 
@@ -101,7 +103,15 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** Every string the toolkit reads or writes goes through a **Text codec**, and an unedited string in any built-in single-byte codec round-trips byte for byte.
 
-**Status:** `not started`
+**Status:** `completed`, uncommitted (awaiting review).
+
+**As built:**
+- **The codec is an option of each reader and writer instance** (`createBinaryReader(bytes, { text })`, `createEscapedBinaryReader(bytes, { text, escapeMarker })`, `createEscapedSliceReader(bytes, { text, escapeMarker })`, `createBinaryWriter({ text })`, `createOutputBuffer({ text })`). It is not a parameter of each `str()` call: the codec belongs to a file, which maps to one reader or writer, and this way it never has to be threaded through the DAT flag rules.
+- **UTF-8 keeps invalid bytes as U+DC80..U+DCFF** (surrogate escape), so even broken UTF-8 round-trips.
+- **No `DEFAULT_TEXT_CODEC` export:** knip flagged it as a duplicate of `windows1252`, which is the documented default.
+- **`createEscapedBinaryWriter` removed here.** The 0.2 `otbm` writer moved to `createOutputBuffer`, and its strings are now windows-1252 in both directions; before, they were read as ISO-8859-1 and written as the low byte.
+- **`fast-check` ^4.10.2 in the catalog.**
+- **`dat` and `otb` got no `text` option, against the deliverable below.** Their strings are Tibia content, not user text: of the 17 OTBs measured, only two names are non-ASCII, and both were already corrupted at the source. Both formats use windows-1252 in both directions, and ADR 0002 was amended to match. The codec option stays in `utils` and in the OTBM plan.
 
 ### Deliverables
 
@@ -134,7 +144,9 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** Given the strings of a file, the toolkit suggests a **Text codec** with a confidence and sample decodings.
 
-**Status:** `not started`
+**Status:** `completed`, uncommitted (awaiting review).
+
+**As built:** counting letter frequencies alone gave low confidence, because Portuguese read as windows-1251 turns into Cyrillic letters (`Nгo`). Each high byte is now scored by context: +1 for a character typical of the code page, -1 for a letter of another script next to its neighbors, -1 for a symbol inside a word (`Z³oty`). Words of 5 or more letters that are more than 70% high bytes count against the Latin code pages, since that is Cyrillic read with the wrong one (`Äîáðî`).
 
 ### Deliverables
 
@@ -159,7 +171,9 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** Anyone with an `items.otb` can build the predicate that OTBM v1 reading needs, without `otbm` depending on `otb`.
 
-**Status:** `not started`
+**Status:** `completed`, uncommitted (awaiting review).
+
+**As built:** `inlineCountOf` lives in `packages/otb/src/otb-flags.ts`, the module for item flag semantics, not in a file of its own. Its tests are in `otb-flags.test.ts` and in `tests/otb.local.ts`, which still reads `items-772.otb` from the package; the `otb` fixtures move to the root in a later plan.
 
 ### Deliverables
 
@@ -182,7 +196,12 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** The foundation changes are documented for the next release.
 
-**Status:** `not started`
+**Status:** `completed`, uncommitted (awaiting review).
+
+**As built:**
+- **A fourth changeset:** a patch for `@paradoxlab/otbm`, whose 0.2 strings changed behavior.
+- **The "Shared primitives" section of `BINARY-FORMATS.md` was rewritten.** It still described `EscapedBinaryWriter` and "Latin-1 (ISO-8859-1)", both wrong now.
+- **`pnpm changeset status`** shows `utils`, `dat` and `otb` at minor, plus `otbm` at patch and the internal dependents (`spr`, `thinger`, `spriter`) at patch.
 
 ### Deliverables
 

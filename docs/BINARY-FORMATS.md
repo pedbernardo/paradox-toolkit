@@ -468,10 +468,28 @@ Items carry a server ID and optional attributes. Items with no attributes and no
 
 ## Shared primitives
 
-All four parsers are built on `createBinaryReader` and `createBinaryWriter` from `@paradoxlab/utils`. These wrap a `Uint8Array` and expose typed read/write methods — no `DataView` or manual byte arithmetic in package code.
+All four parsers are built on the readers and writers of `@paradoxlab/utils`. They wrap a `Uint8Array` and expose typed read/write methods; there is no `DataView` or manual byte arithmetic in package code.
 
-The escaped variants (`EscapedBinaryReader`, `EscapedBinaryWriter`) add `escU8`, `escU16`, `escU32`, and `escU64` methods that transparently apply the OTB/OTBM escape mechanism.
+- **Readers:** `createBinaryReader` (DAT, SPR), and `createEscapedBinaryReader` / `createEscapedSliceReader` (OTB, OTBM). The escaped readers add `escU8`, `escU16`, `escU32`, `escU64` and `escStr`, which undo the OTB/OTBM escape mechanism.
+- **Writers:** `createBinaryWriter` (DAT, SPR), and `createOutputBuffer` (OTB, OTBM). The output buffer is one growing buffer per file, with raw and escaped writes; `take()` hands out what was written so far and keeps the capacity, so a file can be produced in chunks without allocating per node.
 
-**String encoding:** Latin-1 (ISO-8859-1) via a module-level `TextDecoder` constant. Strings in OTB and OTBM are prefixed by a u16 length.
+### Strings
+
+Strings in DAT (market names), OTB (item names, descriptions) and OTBM (texts, names, map data) are stored as a u16 byte length followed by the bytes, with no record of their encoding (see [ADR 0002](adr/0002-text-codec-per-file.md)):
+
+- **DAT and OTB** strings are Tibia content (English, written by tools) and are always read and written as windows-1252.
+- **OTBM** strings are written by end users, and each community used its own Windows code page, so the encoding is a property of the map, chosen by the consumer from these codecs:
+
+| Codec | Languages | Notes |
+|---|---|---|
+| `windows1252` (default) | Portuguese, English, Spanish, German | The WHATWG `latin1` label is this code page, not ISO-8859-1 |
+| `windows1250` | Polish, Czech | |
+| `windows1251` | Russian | |
+| `utf8` | Any (modern forks, generated maps) | Invalid bytes are kept as U+DC80..U+DCFF so they round-trip |
+
+- The `utils` readers and writers take a `text` option (`createBinaryReader(bytes, { text })`, `createOutputBuffer({ text })`); windows-1252 when omitted.
+- Each single-byte codec decodes the 256 byte values to 256 distinct characters, so an unedited string always round-trips byte for byte, whatever its real encoding.
+- Writing a character the codec cannot represent throws `UnencodableTextError`; no character is ever substituted.
+- `detectTextCodec(strings)` suggests a codec with a confidence and decoded samples. It is reliable for UTF-8 and a context-based guess between the single-byte code pages; the consumer decides.
 
 **Version features** (`getVersionFeatures` from `@paradoxlab/utils`) maps each supported client version to a set of boolean flags that the DAT and SPR parsers consult to decide field presence, array element sizes, and flag byte positions. Calling it with an unsupported version throws `UnsupportedVersionError`.

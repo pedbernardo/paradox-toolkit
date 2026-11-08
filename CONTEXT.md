@@ -44,7 +44,7 @@ _Avoid_: roundtrip (unqualified)
 A **Lossless roundtrip** that also reproduces the original bytes, which requires the full **Shape** and the **Source layout**.
 
 **Text codec**:
-The character encoding of the strings inside one file (windows-1252, windows-1250, windows-1251 or UTF-8); a property of the file, never recorded in it, so it is chosen or detected per map.
+The character encoding of the user-written strings inside one map (windows-1252, windows-1250, windows-1251 or UTF-8); a property of the map, never recorded in it, so it is chosen or detected per map.
 _Avoid_: charset, latin1 (the WHATWG `latin1` label is windows-1252)
 
 ### OTBM API
