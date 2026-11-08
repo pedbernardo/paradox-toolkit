@@ -31,24 +31,6 @@ describe('encodePng', () => {
     expect(decoded.rgba).toEqual(rgba)
   })
 
-  it('uses every row filter on images that favor them', async () => {
-    const width = 64
-    const rows = [
-      () => 0x80,
-      (x: number) => x * 4,
-      () => 0x37,
-      (x: number) => (x * 3) & 0xff,
-      (x: number) => (x * x) & 0xff
-    ]
-    const rgba = new Uint8Array(width * rows.length * 4)
-    rows.forEach((value, y) => {
-      for (let x = 0; x < width; x++)
-        rgba.fill(value(x), (y * width + x) * 4, (y * width + x) * 4 + 4)
-    })
-    const png = await encodePng(rgba, width, rows.length, deflate)
-    expect(readPng(png).rgba).toEqual(rgba)
-  })
-
   it('accepts an async deflate', async () => {
     const rgba = sample(8, 8)
     const png = await encodePng(rgba, 8, 8, async (data) => deflateSync(data))

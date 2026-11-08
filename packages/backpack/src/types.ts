@@ -1,5 +1,6 @@
 import type { DatFile } from '@paradoxlab/dat'
 import type { OtbFile } from '@paradoxlab/otb'
+import type { SprFile } from '@paradoxlab/spr'
 
 /** OTB lineage of the items: the OTB version the sids belong to. */
 export type OtbLineage = {
@@ -237,4 +238,170 @@ export type Frame = {
 export type FrameLookup = {
   readonly size: number
   get(spriteId: number): Frame | undefined
+}
+
+/** Number columns in any array-like store: JSON arrays or the loader's typed arrays. */
+export type ArrayColumns<T> = { readonly [K in keyof T]: ArrayLike<number> }
+
+/** `ItemColumns` with numbers in any array-like store: JSON arrays or the loader's typed arrays. */
+export type ItemTable = {
+  readonly [K in keyof ItemColumns]: ItemColumns[K] extends string[]
+    ? readonly string[]
+    : ArrayLike<number>
+}
+
+/**
+ * Appearances of an Asset Pack, one row per client id an item uses, with the layers composed into
+ * one: each sprite index of the layout (`layers` = 1) points at a row of the frame table.
+ */
+export type RenderAppearanceColumns = {
+  readonly cid: number[]
+  readonly width: number[]
+  readonly height: number[]
+  readonly patternX: number[]
+  readonly patternY: number[]
+  readonly patternZ: number[]
+  readonly frames: number[]
+  /** Start of each row's frames in `frameIds`. */
+  readonly frameStart: number[]
+  /** Row in the frame table per sprite index, in `spriteIndex` order; 0 is the empty frame. */
+  readonly frameIds: number[]
+  /** 1 when no frame of the appearance has a transparent pixel. */
+  readonly opaque: number[]
+  /** `StackOrder` value. */
+  readonly order: number[]
+  readonly elevation: number[]
+  readonly offsetX: number[]
+  readonly offsetY: number[]
+  readonly lightLevel: number[]
+  readonly lightColor: number[]
+  /** `AppearanceFlag` bits. */
+  readonly flags: number[]
+}
+
+/** Composed frames in the atlas pages; row 0 is the empty frame (page -1). */
+export type RenderFrameColumns = Omit<FrameColumns, 'id'>
+
+export type RenderJson = {
+  readonly appearances: RenderAppearanceColumns
+  readonly frames: RenderFrameColumns
+}
+
+export type PackManifest = {
+  readonly schema: string
+  readonly client: number
+  /** DAT and SPR signatures, hex. */
+  readonly dat: string
+  readonly spr: string
+  /** `null` when the pack was built without an OTB: then every item has sid = cid. */
+  readonly lineage: OtbLineage | null
+  readonly pages: readonly {
+    readonly file: string
+    readonly width: number
+    readonly height: number
+  }[]
+  readonly counts: { readonly items: number; readonly appearances: number; readonly frames: number }
+}
+
+/** A built Asset Pack in memory: `pack.json`, `items.json`, `render.json` and the PNG pages. */
+export type AssetPackFiles = {
+  readonly manifest: PackManifest
+  readonly items: ItemColumns
+  readonly render: RenderJson
+  /** Encoded PNGs, named by `manifest.pages[i].file`. */
+  readonly pages: readonly Uint8Array[]
+}
+
+export type PackOptions = {
+  dat: DatFile
+  spr: SprFile
+  otb?: OtbFile
+  deflate: Deflate
+  /** Largest page side (default 4096). */
+  maxPageSize?: number
+  /** Transparent pixels between frames (default 0; 1 or more for renderers that sample linearly). */
+  padding?: number
+}
+
+/** Reads one pack file by its path relative to the pack, e.g. `pack.json`. */
+export type PackReader = (path: string) => Promise<Uint8Array>
+
+export type PackPart = 'items' | 'render'
+
+export type LoadPackOptions = {
+  /** Files to read besides `pack.json` (default both); a server needs only `items`. */
+  parts?: readonly PackPart[]
+  /** Called with the manifest before anything else is read; throw to stop loading. */
+  check?: (manifest: PackManifest) => void
+}
+
+/** One appearance of a loaded pack, read on demand. */
+export type PackAppearanceView = {
+  readonly row: number
+  readonly cid: number
+  /** `layers` is always 1: the layers are composed into the frames. */
+  readonly layout: Omit<AppearanceLayout, 'layers'>
+  readonly frameCount: number
+  /** Row in the frame table for a sprite index (see `spriteIndex`), 0 for the empty frame. */
+  frame(index: number): number | undefined
+  readonly opaque: boolean
+  readonly order: number
+  readonly elevation: number
+  readonly offset: { readonly x: number; readonly y: number }
+  readonly light: { readonly level: number; readonly color: number } | null
+  has(flag: number): boolean
+}
+
+export type RenderFrameTable = {
+  readonly size: number
+  readonly page: Int16Array
+  readonly x: Uint16Array
+  readonly y: Uint16Array
+  readonly w: Uint16Array
+  readonly h: Uint16Array
+  readonly offsetX: Uint16Array
+  readonly offsetY: Uint16Array
+}
+
+export type AssetPack = {
+  readonly manifest: PackManifest
+  /** Present when `items` was loaded. */
+  readonly items: PackItemLookup | null
+  /** Present when `render` was loaded. */
+  readonly appearances: {
+    readonly size: number
+    get(row: number): PackAppearanceView | undefined
+  } | null
+  readonly frames: RenderFrameTable | null
+}
+
+export type PackItemLookup = {
+  readonly size: number
+  /** Item columns as typed arrays (`Int32Array`, -1 for none) and names as strings. */
+  readonly columns: ItemTable
+  /** Appearance row per sid, -1 for an unknown sid or one without appearance. */
+  readonly appearanceOfSid: Int32Array
+  get(sid: number): PackItemView | undefined
+  [Symbol.iterator](): Iterator<PackItemView>
+}
+
+export type PackItemView = Omit<ItemView, 'appearance'> & {
+  /** `null` without `render` loaded or when the client lacks the cid. */
+  readonly appearance: PackAppearanceView | null
+}
+
+export type Compatibility =
+  | { readonly level: 'ok' }
+  | { readonly level: 'warn'; readonly reason: string }
+  | { readonly level: 'error'; readonly reason: string }
+
+/** Composed appearances and their unique frames, before packing (internal to the pack build). */
+export type ComposedAppearances = {
+  readonly appearances: RenderAppearanceColumns
+  /** Frames are 1..count; 0 is the empty frame and is never packed. */
+  readonly frameCount: number
+  /** The frame's 32x32 pixels, composed on demand. */
+  imageOf(frame: number): AtlasImage
+  /** 0 for frames used by grounds or borders (packed first), 1 otherwise. */
+  priorityOf(frame: number): number
 }

@@ -104,9 +104,24 @@ importers:
 
   examples:
     dependencies:
+      '@paradoxlab/appearance':
+        specifier: workspace:*
+        version: link:../packages/appearance
+      '@paradoxlab/backpack':
+        specifier: workspace:*
+        version: link:../packages/backpack
+      '@paradoxlab/dat':
+        specifier: workspace:*
+        version: link:../packages/dat
+      '@paradoxlab/otb':
+        specifier: workspace:*
+        version: link:../packages/otb
       '@paradoxlab/otbm':
         specifier: workspace:*
         version: link:../packages/otbm
+      '@paradoxlab/spr':
+        specifier: workspace:*
+        version: link:../packages/spr
       '@paradoxlab/utils':
         specifier: workspace:*
         version: link:../packages/utils
@@ -152,10 +167,13 @@ importers:
         version: 6.0.3
       vitest:
         specifier: 'catalog:'
-        version: 4.1.8(@types/node@25.9.2)(@vitest/coverage-v8@4.1.8)(vite@8.0.16(@types/node@25.9.2)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))
+        version: 4.1.8(@types/node@25.9.2)(@vitest/coverage-v8@4.1.8)(vite@8.0.16(@types/node@25.9.2)(esbuild@0.27.7)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))
 
   packages/backpack:
     dependencies:
+      '@paradoxlab/appearance':
+        specifier: workspace:*
+        version: link:../appearance
       '@paradoxlab/dat':
         specifier: workspace:*
         version: link:../dat
@@ -172,6 +190,9 @@ importers:
       '@paradoxlab/fixtures':
         specifier: workspace:*
         version: link:../../fixtures
+      '@paradoxlab/otbm':
+        specifier: workspace:*
+        version: link:../otbm
       '@types/node':
         specifier: 'catalog:'
         version: 25.9.2
@@ -192,7 +213,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: 'catalog:'
-        version: 4.1.8(@types/node@25.9.2)(@vitest/coverage-v8@4.1.8)(vite@8.0.16(@types/node@25.9.2)(esbuild@0.27.7)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))
+        version: 4.1.8(@types/node@25.9.2)(@vitest/coverage-v8@4.1.8)(vite@8.0.16(@types/node@25.9.2)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))
 
   packages/dat:
     dependencies:

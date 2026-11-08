@@ -4,14 +4,15 @@
 import { join, resolve } from 'node:path'
 import { Command } from 'commander'
 import { buildContent } from './backpack-content.js'
-import { deflateNode, readDat, readOtb, readSpr, writeOutput } from './backpack-node.js'
+import { deflateNode, readDat, readOtb, readSpr, writeOutput, writePack } from './backpack-node.js'
+import { buildPack } from './backpack-pack.js'
 import { buildSpriteSheet, extractSprites } from './backpack-sprites.js'
 
 const program = new Command()
 
 program
   .name('backpack')
-  .description('Build item content and sprite atlases from OTServer client files')
+  .description('Build Asset Packs, item content and sprite atlases from OTServer client files')
 
 /** Runs a command, turning any error into a message and exit code 1. */
 const run =
@@ -31,6 +32,50 @@ const parseIds = (value: string): number[] =>
     if (to === undefined) return [from!]
     return Array.from({ length: to - from! + 1 }, (_, index) => from! + index)
   })
+
+const megabytes = (bytes: number): string => `${(bytes / 2 ** 20).toFixed(1)} MB`
+
+program
+  .command('build')
+  .description('Asset Pack: pack.json, items.json, render.json and page-N.png')
+  .requiredOption('--dat <path>', '.dat file')
+  .requiredOption('--spr <path>', '.spr file')
+  .option('--otb <path>', 'items.otb file (without it, sid = cid)')
+  .requiredOption('--version <number>', 'client version, e.g. 772', Number)
+  .option('--out <dir>', 'output directory', './pack')
+  .option('--max-page-size <px>', 'largest page side', Number, 4096)
+  .action(
+    run(
+      async (options: {
+        dat: string
+        spr: string
+        otb?: string
+        version: number
+        out: string
+        maxPageSize: number
+      }) => {
+        const start = performance.now()
+        const dat = readDat(resolve(options.dat), options.version)
+        const spr = readSpr(resolve(options.spr), options.version)
+        const otb = options.otb === undefined ? undefined : readOtb(resolve(options.otb))
+        const pack = await buildPack({
+          dat,
+          spr,
+          deflate: deflateNode,
+          maxPageSize: options.maxPageSize,
+          ...(otb === undefined ? {} : { otb })
+        })
+        const out = resolve(options.out)
+        writePack(out, pack)
+        const { counts } = pack.manifest
+        const pageBytes = pack.pages.reduce((sum, png) => sum + png.length, 0)
+        console.log(
+          `${out}: ${counts.items} items, ${counts.appearances} appearances, ${counts.frames} frames, ` +
+            `${pack.pages.length} pages (${megabytes(pageBytes)}) in ${((performance.now() - start) / 1000).toFixed(1)} s`
+        )
+      }
+    )
+  )
 
 program
   .command('content')

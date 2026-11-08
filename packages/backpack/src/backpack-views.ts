@@ -1,4 +1,5 @@
 import type {
+  ArrayColumns,
   AppearanceColumns,
   AppearanceLayout,
   AppearanceView,
@@ -7,19 +8,26 @@ import type {
   Frame,
   FrameColumns,
   FrameLookup,
-  ItemColumns,
-  ItemView
+  ItemTable,
+  ItemView,
+  PackAppearanceView,
+  RenderAppearanceColumns
 } from './types.js'
 
 const orNull = (value: number): number | null => (value < 0 ? null : value)
 
-/** A table keyed by small non-negative ids: one typed array instead of a Map. */
-function rowIndex(ids: readonly number[]): (id: number) => number {
+/** Row of each small non-negative id, -1 for none: one typed array instead of a Map. */
+export function rowsById(ids: ArrayLike<number>): Int32Array {
   let max = -1
-  for (const id of ids) if (id > max) max = id
+  for (let row = 0; row < ids.length; row++) if (ids[row]! > max) max = ids[row]!
   const rowOf = new Int32Array(max + 1).fill(-1)
   for (let row = 0; row < ids.length; row++) rowOf[ids[row]!] = row
-  return (id) => (id >= 0 && id <= max ? rowOf[id]! : -1)
+  return rowOf
+}
+
+function rowIndex(ids: ArrayLike<number>): (id: number) => number {
+  const rowOf = rowsById(ids)
+  return (id) => (id >= 0 && id < rowOf.length ? rowOf[id]! : -1)
 }
 
 class AppearanceRow implements AppearanceView {
@@ -81,15 +89,13 @@ class AppearanceRow implements AppearanceView {
   }
 }
 
-class ItemRow implements ItemView {
-  private readonly columns: ItemColumns
-
+/** Item columns of a content file or a loaded pack; `appearanceOf` turns an appearance row into its view. */
+export class ItemRow<A> {
   constructor(
-    private readonly content: ContentJson,
-    readonly row: number
-  ) {
-    this.columns = content.items
-  }
+    private readonly columns: ItemTable,
+    readonly row: number,
+    private readonly appearanceOf: (row: number) => A | null
+  ) {}
 
   get sid(): number {
     return this.columns.sid[this.row]!
@@ -155,9 +161,69 @@ class ItemRow implements ItemView {
     return orNull(this.columns.lensHelp[this.row]!)
   }
 
-  get appearance(): AppearanceView | null {
+  get appearance(): A | null {
     const row = this.columns.appearance[this.row]!
-    return row < 0 ? null : new AppearanceRow(this.content.appearances, row)
+    return row < 0 ? null : this.appearanceOf(row)
+  }
+}
+
+export class PackAppearanceRow implements PackAppearanceView {
+  constructor(
+    private readonly columns: ArrayColumns<RenderAppearanceColumns>,
+    readonly row: number
+  ) {}
+
+  get cid(): number {
+    return this.columns.cid[this.row]!
+  }
+
+  get layout(): Omit<AppearanceLayout, 'layers'> {
+    const c = this.columns
+    const row = this.row
+    return {
+      width: c.width[row]!,
+      height: c.height[row]!,
+      patternX: c.patternX[row]!,
+      patternY: c.patternY[row]!,
+      patternZ: c.patternZ[row]!,
+      frames: c.frames[row]!
+    }
+  }
+
+  get frameCount(): number {
+    const end = this.columns.frameStart[this.row + 1] ?? this.columns.frameIds.length
+    return end - this.columns.frameStart[this.row]!
+  }
+
+  frame(index: number): number | undefined {
+    return index >= 0 && index < this.frameCount
+      ? this.columns.frameIds[this.columns.frameStart[this.row]! + index]
+      : undefined
+  }
+
+  get opaque(): boolean {
+    return this.columns.opaque[this.row] === 1
+  }
+
+  get order(): number {
+    return this.columns.order[this.row]!
+  }
+
+  get elevation(): number {
+    return this.columns.elevation[this.row]!
+  }
+
+  get offset(): { x: number; y: number } {
+    return { x: this.columns.offsetX[this.row]!, y: this.columns.offsetY[this.row]! }
+  }
+
+  get light(): { level: number; color: number } | null {
+    const level = this.columns.lightLevel[this.row]!
+    return level === 0 ? null : { level, color: this.columns.lightColor[this.row]! }
+  }
+
+  has(flag: number): boolean {
+    return (this.columns.flags[this.row]! & flag) !== 0
   }
 }
 
@@ -165,16 +231,18 @@ class ItemRow implements ItemView {
 export function viewContent(content: ContentJson): ContentView {
   const rowOf = rowIndex(content.items.sid)
   const size = content.items.sid.length
+  const appearanceOf = (row: number): AppearanceView => new AppearanceRow(content.appearances, row)
+  const itemAt = (row: number): ItemView => new ItemRow(content.items, row, appearanceOf)
   return {
     meta: content.meta,
     items: {
       size,
       get(sid) {
         const row = rowOf(sid)
-        return row < 0 ? undefined : new ItemRow(content, row)
+        return row < 0 ? undefined : itemAt(row)
       },
       *[Symbol.iterator]() {
-        for (let row = 0; row < size; row++) yield new ItemRow(content, row)
+        for (let row = 0; row < size; row++) yield itemAt(row)
       }
     }
   }

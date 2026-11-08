@@ -25,6 +25,10 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
+    "./load": {
+      "import": "./dist/load.js",
+      "types": "./dist/load.d.ts"
+    },
     "./content": {
       "import": "./dist/content.js",
       "types": "./dist/content.d.ts"
@@ -44,9 +48,11 @@
     "test:run": "vitest run",
     "test:cov": "vitest run --coverage",
     "test:local": "vitest run --config vitest.local.config.ts",
-    "bench:sprites": "node --import tsx/esm bench/sprites.bench.ts"
+    "bench:sprites": "node --import tsx/esm bench/sprites.bench.ts",
+    "bench:pack": "node --import tsx/esm bench/pack.bench.ts"
   },
   "dependencies": {
+    "@paradoxlab/appearance": "workspace:*",
     "@paradoxlab/dat": "workspace:*",
     "@paradoxlab/otb": "workspace:*",
     "@paradoxlab/spr": "workspace:*",
@@ -54,6 +60,7 @@
   },
   "devDependencies": {
     "@paradoxlab/fixtures": "workspace:*",
+    "@paradoxlab/otbm": "workspace:*",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "fast-check": "catalog:",
