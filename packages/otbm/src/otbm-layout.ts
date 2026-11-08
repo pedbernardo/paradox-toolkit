@@ -232,33 +232,36 @@ export function composeOtbm(
   }
 
   function emitArea(area: SourceLayoutArea, visitor: OtbmVisitor, written: WrittenTiles): boolean {
-    const position = (offset: number) => [area.x + (offset >> 8), area.y + (offset & 0xff)] as const
-    const isPending = (offset: number): boolean => {
-      const [x, y] = position(offset)
-      return !written.has(x, y, area.z) && tiles.hasTile(x, y, area.z)
-    }
-    const hadTiles = area.tiles.length > 0
-    const keepsTiles = area.tiles.some(isPending)
-    const isEmptiedByEdits = hadTiles && !keepsTiles && area.unknown.length === 0
+    const { x: areaX, y: areaY, z, tiles: offsets, unknown } = area
+    const isEmptiedByEdits =
+      offsets.length > 0 && unknown.length === 0 && !keepsTiles(area, written)
     if (isEmptiedByEdits) return false
 
-    visitor.area?.(area.x, area.y, area.z, area.tail)
+    visitor.area?.(areaX, areaY, z, area.tail)
     let next = 0
-    const emitUnknownBefore = (index: number): void => {
-      while (next < area.unknown.length && area.unknown[next]!.before <= index) {
-        const node = area.unknown[next++]!
-        visitor.unknownNode?.(node.type, node.raw)
+    for (let index = 0; index < offsets.length; index++) {
+      while (next < unknown.length && unknown[next]!.before <= index) {
+        visitor.unknownNode?.(unknown[next]!.type, unknown[next]!.raw)
+        next++
       }
+      const x = areaX + (offsets[index]! >> 8)
+      const y = areaY + (offsets[index]! & 0xff)
+      if (written.has(x, y, z)) continue
+      if (tiles.emitTile(x, y, z, visitor)) written.add(x, y, z)
     }
-    area.tiles.forEach((offset, index) => {
-      emitUnknownBefore(index)
-      const [x, y] = position(offset)
-      if (written.has(x, y, area.z)) return
-      if (tiles.emitTile(x, y, area.z, visitor)) written.add(x, y, area.z)
-    })
-    emitUnknownBefore(Number.POSITIVE_INFINITY)
+    for (; next < unknown.length; next++)
+      visitor.unknownNode?.(unknown[next]!.type, unknown[next]!.raw)
     visitor.areaEnd?.()
     return true
+  }
+
+  function keepsTiles(area: SourceLayoutArea, written: WrittenTiles): boolean {
+    for (const offset of area.tiles) {
+      const x = area.x + (offset >> 8)
+      const y = area.y + (offset & 0xff)
+      if (!written.has(x, y, area.z) && tiles.hasTile(x, y, area.z)) return true
+    }
+    return false
   }
 
   function* emitNewTiles(
