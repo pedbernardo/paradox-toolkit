@@ -103,7 +103,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** Every string the toolkit reads or writes goes through a **Text codec**, and an unedited string in any built-in single-byte codec round-trips byte for byte.
 
-**Status:** `completed`, uncommitted (awaiting review).
+**Status:** `completed`. Commit per phase group (phases 3-6 reviewed together): `8d759c3` (utils), `a3d13a7` (dat), `7070982` (otb), `5cff963` (otbm), `d695c52` (changesets), `1739514` (docs).
 
 **As built:**
 - **The codec is an option of each reader and writer instance** (`createBinaryReader(bytes, { text })`, `createEscapedBinaryReader(bytes, { text, escapeMarker })`, `createEscapedSliceReader(bytes, { text, escapeMarker })`, `createBinaryWriter({ text })`, `createOutputBuffer({ text })`). It is not a parameter of each `str()` call: the codec belongs to a file, which maps to one reader or writer, and this way it never has to be threaded through the DAT flag rules.
@@ -144,7 +144,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** Given the strings of a file, the toolkit suggests a **Text codec** with a confidence and sample decodings.
 
-**Status:** `completed`, uncommitted (awaiting review).
+**Status:** `completed`. See Phase 3 for the commits.
 
 **As built:** counting letter frequencies alone gave low confidence, because Portuguese read as windows-1251 turns into Cyrillic letters (`Nгo`). Each high byte is now scored by context: +1 for a character typical of the code page, -1 for a letter of another script next to its neighbors, -1 for a symbol inside a word (`Z³oty`). Words of 5 or more letters that are more than 70% high bytes count against the Latin code pages, since that is Cyrillic read with the wrong one (`Äîáðî`).
 
@@ -171,7 +171,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** Anyone with an `items.otb` can build the predicate that OTBM v1 reading needs, without `otbm` depending on `otb`.
 
-**Status:** `completed`, uncommitted (awaiting review).
+**Status:** `completed`. See Phase 3 for the commits.
 
 **As built:** `inlineCountOf` lives in `packages/otb/src/otb-flags.ts`, the module for item flag semantics, not in a file of its own. Its tests are in `otb-flags.test.ts` and in `tests/otb.local.ts`, which still reads `items-772.otb` from the package; the `otb` fixtures move to the root in a later plan.
 
@@ -196,7 +196,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** The foundation changes are documented for the next release.
 
-**Status:** `completed`, uncommitted (awaiting review).
+**Status:** `completed`. See Phase 3 for the commits.
 
 **As built:**
 - **A fourth changeset:** a patch for `@paradoxlab/otbm`, whose 0.2 strings changed behavior.

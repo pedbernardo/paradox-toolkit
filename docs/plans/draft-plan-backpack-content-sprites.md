@@ -9,7 +9,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 - [ADR 0003 - `@paradoxlab/backpack` generates Asset Packs and absorbs `thinger` and `spriter`](../adr/0003-backpack-absorbs-thinger-and-spriter.md)
 - [ADR 0004 - Asset Pack format](../adr/0004-asset-pack-format.md)
 - [ADR 0002 - Text codec per file](../adr/0002-text-codec-per-file.md)
-- [draft-plan-foundation-utils-fixtures.md](draft-plan-foundation-utils-fixtures.md) (prerequisite: fixtures, codecs)
+- [done-01-plan-foundation-utils-fixtures.md](done-01-plan-foundation-utils-fixtures.md) (prerequisite: fixtures, codecs)
 - `packages/thinger/src` and `packages/spriter/src` (code being absorbed)
 - `../mapeditor/docs/research/spike-s4.md` (sizes and timings to beat); `../mapeditor/spikes/s4-asset-pack/src/build/{trim,pack-pages,png}.ts`
 
