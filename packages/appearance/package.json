@@ -1,6 +1,6 @@
 {
   "name": "@paradoxlab/appearance",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": false,
   "description": "Visual rules of OTServer thing types: sprite index, patterns, elevation and animation phase.",
   "keywords": [
