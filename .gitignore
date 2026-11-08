@@ -33,3 +33,6 @@ tmp/
 
 # Draft files
 docs/drafts/
+
+# Benchmark output, regenerated on every run (curated results live in results/perf.md)
+packages/*/results/*-latest.md

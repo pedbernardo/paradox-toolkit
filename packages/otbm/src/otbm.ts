@@ -1,122 +1,124 @@
-import { createEscapedSliceReader, ParseError } from '@paradoxlab/utils'
-import { NODE_SPECIAL_BYTE, TILE_KEY_Y_STRIDE, TILE_KEY_Z_STRIDE } from './otbm-config.js'
-import { OtbmStreamParser } from './otbm-stream.js'
-import { serializeOtbm } from './otbm-writer.js'
-import type { OtbmFile, OtbmOptions, OtbmWriteInput, OtbmWriteOpts } from './types.js'
+import { ParseError, createOutputBuffer, windows1252 } from '@paradoxlab/utils'
+import { checkFileSize, resolveLimits } from './otbm-config.js'
+import { collectDocument } from './otbm-document.js'
+import { OtbmEncodeError, createOtbmEncoder } from './otbm-writer.js'
+import { readOtbm, readOtbmSteps } from './otbm-stream.js'
+import type {
+  OtbmDocument,
+  OtbmOptions,
+  OtbmReadOptions,
+  OtbmSource,
+  OtbmVisitor,
+  OtbmWriteStreamOptions
+} from './types.js'
 
-type OtbmLoadOptions = {
-  onProgress?: (pct: number) => void
+const DEFAULT_CHUNK_BYTES = 1 << 20
+
+type Otbm = {
+  /** Checks the node start and the size ceiling without reading the map. */
+  validate(bytes: Uint8Array): void
+  /** One visitor, or several called in order for each event (e.g. a model and its layout). */
+  read(
+    bytes: Uint8Array,
+    visitor: OtbmVisitor | readonly OtbmVisitor[],
+    readOptions?: OtbmReadOptions
+  ): void
+  /** The whole map as objects; the document is also an event source, so it can be written back. */
+  load(bytes: Uint8Array, readOptions?: OtbmReadOptions): OtbmDocument
+  /** The file as an event source, pausing after each tile area. */
+  source(bytes: Uint8Array): OtbmSource
+  write(source: OtbmSource): Uint8Array
+  writeStream(source: OtbmSource, writeOptions?: OtbmWriteStreamOptions): Generator<Uint8Array>
 }
 
-export function Otbm(opts?: OtbmOptions): {
-  validate(buffer: ArrayBuffer | Uint8Array): void
-  load(buffer: ArrayBuffer | Uint8Array, loadOpts?: OtbmLoadOptions): OtbmFile
-  write(data: OtbmWriteInput, writeOpts?: OtbmWriteOpts): Uint8Array
-  writeStream(data: OtbmWriteInput, writeOpts?: OtbmWriteOpts): AsyncIterable<Uint8Array>
-} {
-  const otbLookup = opts?.lookup
+export function Otbm(options: OtbmOptions = {}): Otbm {
+  const text = options.text ?? windows1252
+  const limits = resolveLimits(options.limits)
 
-  return {
-    validate,
-    load,
-    write,
-    writeStream
+  return { validate, read, load, source, write, writeStream }
+
+  function validate(bytes: Uint8Array): void {
+    if (bytes.length < 6 || bytes[4] !== 0xfe) {
+      throw new ParseError('Not an OTBM file: expected a node start at offset 4')
+    }
+    checkFileSize(bytes.length, limits)
   }
 
-  function validate(buffer: ArrayBuffer | Uint8Array): void {
-    const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer)
-
-    if (bytes.byteLength < 6) {
-      throw new ParseError('Buffer too small for OTBM file (< 6 bytes)')
-    }
-
-    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
-    const magic = view.getUint32(0, true)
-
-    if (magic > 3) {
-      throw new ParseError(
-        `Invalid OTBM magic: 0x${magic.toString(16).padStart(8, '0')} (expected 0-3)`
-      )
-    }
-
-    if (bytes[4] !== NODE_SPECIAL_BYTE.START) {
-      throw new ParseError(`Expected 0xFE at offset 4, got 0x${bytes[4]!.toString(16)}`)
-    }
+  function read(
+    bytes: Uint8Array,
+    visitor: OtbmVisitor | readonly OtbmVisitor[],
+    readOptions: OtbmReadOptions = {}
+  ): void {
+    const single = Array.isArray(visitor) ? combine(visitor) : (visitor as OtbmVisitor)
+    readOtbm(bytes, single, options, readOptions)
   }
 
-  function load(buffer: ArrayBuffer | Uint8Array, loadOpts?: OtbmLoadOptions): OtbmFile {
-    const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer)
-    const sliceReader = createEscapedSliceReader(bytes)
-    const parser = new OtbmStreamParser(bytes, sliceReader, otbLookup, loadOpts?.onProgress)
-
-    parser.run()
-
-    const { header, areas, tileMap, towns, waypoints, stats } = parser
-
-    if (header === null) throw new ParseError('No OTBM header found')
-
-    return {
-      header,
-      areas,
-      towns,
-      waypoints,
-      getTile: (x, y, z) => tileMap.get(x + y * TILE_KEY_Y_STRIDE + z * TILE_KEY_Z_STRIDE),
-      getStats: () => ({ ...stats })
-    }
+  function load(bytes: Uint8Array, readOptions: OtbmReadOptions = {}): OtbmDocument {
+    const collector = collectDocument()
+    readOtbm(bytes, collector.visitor, options, readOptions)
+    return collector.document()
   }
 
-  function write(data: OtbmWriteInput, writeOpts?: OtbmWriteOpts): Uint8Array {
-    if (data.header.version !== 2) {
-      // oxlint-disable-next-line no-console
-      console.warn(
-        `OTBM write: header.version is ${data.header.version}, expected 2 - serializing as v2`
-      )
-    }
-
-    const total = data.areas.length
-    const onProgress = writeOpts?.onProgress
-    const onArea =
-      onProgress !== undefined
-        ? (index: number, _total: number) => onProgress(total > 0 ? (index + 1) / total : 1)
-        : undefined
-
-    const chunks = serializeOtbm(data, onArea)
-
-    let byteCount = 0
-    for (const c of chunks) byteCount += c.length
-
-    const result = new Uint8Array(byteCount)
-    let off = 0
-    for (const c of chunks) {
-      result.set(c, off)
-      off += c.length
-    }
-    return result
+  function source(bytes: Uint8Array): OtbmSource {
+    return { emit: (visitor) => readOtbmSteps(bytes, visitor, options) }
   }
 
-  async function* writeStream(
-    data: OtbmWriteInput,
-    writeOpts?: OtbmWriteOpts
-  ): AsyncGenerator<Uint8Array> {
-    if (data.header.version !== 2) {
-      // oxlint-disable-next-line no-console
-      console.warn(
-        `OTBM write: header.version is ${data.header.version}, expected 2 - serializing as v2`
-      )
+  function write(input: OtbmSource): Uint8Array {
+    const chunks = [...writeStream(input, { chunkBytes: Number.POSITIVE_INFINITY })]
+    if (chunks.length === 1) return chunks[0]!
+    const total = chunks.reduce((sum, chunk) => sum + chunk.length, 0)
+    const out = new Uint8Array(total)
+    let offset = 0
+    for (const chunk of chunks) {
+      out.set(chunk, offset)
+      offset += chunk.length
     }
+    return out
+  }
 
-    const chunks = serializeOtbm(data)
-    const totalAreas = data.areas.length
-    let areasSeen = 0
+  function* writeStream(
+    input: OtbmSource,
+    writeOptions: OtbmWriteStreamOptions = {}
+  ): Generator<Uint8Array> {
+    const chunkBytes = writeOptions.chunkBytes ?? DEFAULT_CHUNK_BYTES
+    const maxBytes = writeOptions.maxBytes ?? limits.fileBytes
+    const initialBytes = Number.isFinite(chunkBytes) ? chunkBytes * 2 : DEFAULT_CHUNK_BYTES
+    const output = createOutputBuffer({ initialBytes, text })
+    const encoder = createOtbmEncoder(output, options)
+    let written = 0
 
-    for (let i = 0; i < chunks.length; i++) {
-      yield chunks[i]!
-      await Promise.resolve()
-      // chunks[0] = header, chunks[1..totalAreas] = areas, last = footer
-      if (i >= 1 && i <= totalAreas) {
-        areasSeen++
-        writeOpts?.onProgress?.(totalAreas > 0 ? areasSeen / totalAreas : 1)
+    const checkSize = (): void => {
+      if (written + output.length > maxBytes) {
+        throw new OtbmEncodeError(`OTBM output passed the ${maxBytes}-byte limit`)
       }
     }
+
+    const steps = input.emit(encoder)[Symbol.iterator]()
+    while (steps.next().done !== true) {
+      checkSize()
+      if (output.length >= chunkBytes) {
+        written += output.length
+        yield output.take()
+      }
+    }
+    checkSize()
+    if (!encoder.finished) throw new OtbmEncodeError('The event source ended before `end`')
+    if (output.length > 0) yield output.take()
   }
+}
+
+/** One visitor that calls each of `visitors` in order, for the events they implement. */
+function combine(visitors: readonly OtbmVisitor[]): OtbmVisitor {
+  if (visitors.length === 1) return visitors[0]!
+  const names = new Set(visitors.flatMap((visitor) => Object.keys(visitor))) as Set<
+    keyof OtbmVisitor
+  >
+  const combined: Record<string, (...args: never[]) => void> = {}
+  for (const name of names) {
+    const targets = visitors.filter((visitor) => visitor[name] !== undefined)
+    combined[name] = (...args: never[]) => {
+      for (const target of targets) (target[name] as (...a: never[]) => void).apply(target, args)
+    }
+  }
+  return combined as OtbmVisitor
 }

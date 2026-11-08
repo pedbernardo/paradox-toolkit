@@ -1,3 +1,6 @@
+import { ParseError } from '@paradoxlab/utils'
+import type { OtbmLimits } from './types.js'
+
 export const NODE_SPECIAL_BYTE = {
   START: 0xfe,
   END: 0xff,
@@ -27,7 +30,9 @@ export const OTBM_ATTRIBUTE = {
   TELE_DEST: 0x08,
   ITEM: 0x09,
   DEPOT_ID: 0x0a,
+  SPAWN_FILE: 0x0b,
   RUNE_CHARGES: 0x0c,
+  HOUSE_FILE: 0x0d,
   HOUSE_DOOR: 0x0e,
   COUNT: 0x0f,
   DURATION: 0x10,
@@ -40,9 +45,6 @@ export const OTBM_ATTRIBUTE = {
   ATTRIBUTE_MAP: 0x80
 } as const
 
-export const TILE_KEY_Y_STRIDE = 65536
-export const TILE_KEY_Z_STRIDE = 4294967296
-
 export const OTBM_TILE_FLAG = {
   PROTECTION_ZONE: 0x01,
   NO_PVP: 0x04,
@@ -50,3 +52,37 @@ export const OTBM_TILE_FLAG = {
   PVP_ZONE: 0x10,
   REFRESH: 0x20
 } as const
+
+const MIB = 1 << 20
+
+/**
+ * The largest real map known (104 MB, 9.5 million tiles), rounded up. Ceilings are multiples of it,
+ * so maps two or three times larger still open; raise it when a larger real map shows up.
+ */
+export const OTBM_LARGEST_KNOWN = 110 * MIB
+
+/** Multiple of `OTBM_LARGEST_KNOWN` above which a file is refused. */
+export const OTBM_HEADROOM = 3
+
+export const DEFAULT_OTBM_LIMITS: OtbmLimits = {
+  fileWarnBytes: 2 * OTBM_LARGEST_KNOWN,
+  fileBytes: OTBM_HEADROOM * OTBM_LARGEST_KNOWN,
+  itemsPerTile: 1024,
+  containerChildren: 1024,
+  itemNesting: 32,
+  nodePropertyBytes: MIB
+}
+
+export function resolveLimits(limits: Partial<OtbmLimits> | undefined): OtbmLimits {
+  return { ...DEFAULT_OTBM_LIMITS, ...limits }
+}
+
+/** Throws above the fatal file size; true when the file is above the warning size. */
+export function checkFileSize(byteLength: number, limits: OtbmLimits): boolean {
+  if (byteLength > limits.fileBytes) {
+    throw new ParseError(
+      `OTBM of ${byteLength} bytes is above the ${limits.fileBytes}-byte ceiling`
+    )
+  }
+  return byteLength > limits.fileWarnBytes
+}

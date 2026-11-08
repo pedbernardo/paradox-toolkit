@@ -1,288 +1,599 @@
-import { ParseError } from '@paradoxlab/utils'
-import type { EscapedSliceReader } from '@paradoxlab/utils'
+import { ParseError, windows1252 } from '@paradoxlab/utils'
+import type { TextCodec } from '@paradoxlab/utils'
+import { ITEM_ATTRIBUTE_BY_ID } from './otbm-attributes.js'
+import type { AttributeReader } from './otbm-attributes.js'
 import {
   NODE_SPECIAL_BYTE,
+  OTBM_ATTRIBUTE,
   OTBM_NODE_TYPE,
-  TILE_KEY_Y_STRIDE,
-  TILE_KEY_Z_STRIDE
+  checkFileSize,
+  resolveLimits
 } from './otbm-config.js'
-import { parseItemAttrs, parseTileAttrs } from './otbm-attributes.js'
 import type {
-  OtbLookup,
-  OtbmHeader,
-  OtbmHouseTile,
-  OtbmItem,
-  OtbmRegularTile,
-  OtbmStats,
-  OtbmTile,
-  OtbmTileArea,
-  OtbmTown,
-  OtbmWaypoint
+  ItemForm,
+  OtbmDiagnosticCode,
+  OtbmItemAttribute,
+  OtbmLimits,
+  OtbmMapDataAttribute,
+  OtbmOptions,
+  OtbmReadOptions,
+  OtbmVisitor
 } from './types.js'
 
 const { START, END, ESCAPE } = NODE_SPECIAL_BYTE
-const MAX_OTBM_DEPTH = 31
+/** Nodes above the items: root, map data, area, tile. */
+const STRUCTURE_DEPTH = 4
 
-export function countTileAreas(bytes: Uint8Array): number {
-  let count = 0
-  let d = -1
-  let i = 4
+const Kind = {
+  None: -1,
+  Unknown: -2,
+  Root: 0,
+  MapData: 1,
+  Area: 2,
+  Tile: 3,
+  Item: 4,
+  Towns: 5,
+  Waypoints: 6,
+  Town: 7,
+  Waypoint: 8
+} as const
 
-  while (i < bytes.length) {
-    const b = bytes[i]!
-    if (b === ESCAPE) {
-      i += 2
-      continue
-    }
-    if (b === START) {
-      i++
-      if (i < bytes.length) {
-        const type = bytes[i++]!
-        d++
-        if (d === 2 && type === OTBM_NODE_TYPE.TILE_AREA) count++
-      }
-      continue
-    }
-    if (b === END) {
-      d--
-      i++
-      continue
-    }
-    i++
+const KNOWN_TYPES = new Set<number>(Object.values(OTBM_NODE_TYPE))
+const strictUtf8 = new TextDecoder('utf-8', { fatal: true })
+
+function looksLikeUtf8(bytes: Uint8Array): boolean {
+  if (!bytes.some((b) => b >= 0x80)) return false
+  try {
+    strictUtf8.decode(bytes)
+    return true
+  } catch {
+    return false
   }
-
-  return count
 }
 
-export class OtbmStreamParser {
-  header: OtbmHeader | null = null
-  readonly areas: OtbmTileArea[] = []
-  readonly tileMap = new Map<number, OtbmTile>()
-  readonly towns: OtbmTown[] = []
-  readonly waypoints: OtbmWaypoint[] = []
-  readonly stats: OtbmStats = {
-    areas: 0,
-    tiles: 0,
-    houseTiles: 0,
-    items: 0,
-    nestedItems: 0,
-    towns: 0,
-    waypoints: 0
+/** Counts each diagnostic code with its first offset, and reports them all once at the end. */
+class DiagnosticLog {
+  private readonly entries = new Map<
+    OtbmDiagnosticCode,
+    { offset: number; count: number; message: string }
+  >()
+
+  add(code: OtbmDiagnosticCode, offset: number, message: string): void {
+    const entry = this.entries.get(code)
+    if (entry === undefined) this.entries.set(code, { offset, count: 1, message })
+    else entry.count++
   }
 
-  // context stack - parallel Int32Arrays, no heap allocation per node
-  // ctxPropsBegin[d] == -1 means props at depth d were already processed
-  private readonly ctxType = new Int32Array(MAX_OTBM_DEPTH + 1)
-  private readonly ctxPropsBegin = new Int32Array(MAX_OTBM_DEPTH + 1)
+  report(visitor: OtbmVisitor): void {
+    for (const [code, { offset, count, message }] of this.entries) {
+      visitor.diagnostic?.({ code, offset, count, message })
+    }
+  }
+}
+
+/** The offset right after the node that starts at `start`, children included. */
+function nodeEnd(bytes: Uint8Array, start: number): number {
+  let depth = 0
+  let i = start
+  while (i < bytes.length) {
+    const b = bytes[i]
+    if (b === ESCAPE) {
+      i += 2
+    } else if (b === START) {
+      depth++
+      i += 2
+    } else if (b === END) {
+      i++
+      if (--depth === 0) return i
+    } else {
+      i++
+    }
+  }
+  throw new ParseError(`OTBM ends inside the node that starts at offset ${start}`)
+}
+
+function classifyMapChild(type: number): number {
+  if (type === OTBM_NODE_TYPE.TILE_AREA) return Kind.Area
+  if (type === OTBM_NODE_TYPE.TOWNS) return Kind.Towns
+  if (type === OTBM_NODE_TYPE.WAYPOINTS) return Kind.Waypoints
+  return Kind.Unknown
+}
+
+/** What a node of `type` is under a parent of `parent` kind; `Unknown` is kept as raw bytes. */
+function classify(parent: number, type: number): number {
+  switch (parent) {
+    case Kind.None:
+      return Kind.Root
+    case Kind.Root:
+      // Areas and lists under the root are out of place but self-contained: read them in place.
+      return type === OTBM_NODE_TYPE.MAP_DATA ? Kind.MapData : classifyMapChild(type)
+    case Kind.MapData:
+      return classifyMapChild(type)
+    case Kind.Area:
+      return type === OTBM_NODE_TYPE.TILE || type === OTBM_NODE_TYPE.HOUSETILE
+        ? Kind.Tile
+        : Kind.Unknown
+    case Kind.Tile:
+    case Kind.Item:
+      return type === OTBM_NODE_TYPE.ITEM ? Kind.Item : Kind.Unknown
+    case Kind.Towns:
+      return type === OTBM_NODE_TYPE.TOWN ? Kind.Town : Kind.Unknown
+    case Kind.Waypoints:
+      return type === OTBM_NODE_TYPE.WAYPOINT ? Kind.Waypoint : Kind.Unknown
+    default:
+      return Kind.Unknown
+  }
+}
+
+/**
+ * Reads an OTBM in one pass, reporting it as OTBM events. Node properties are read in place from
+ * the file (or from an unescaped copy when they hold an escape byte); nothing is allocated per
+ * tile or per attribute-less item.
+ */
+export class OtbmStreamParser implements AttributeReader {
+  // Context stack: parallel typed arrays, no allocation per node. ctxPropsBegin[d] is -1 once the
+  // properties at depth d were processed (they end at the first child or at the node end).
+  private readonly ctxType: Int32Array
+  private readonly ctxKind: Int32Array
+  private readonly ctxPropsBegin: Int32Array
+  private readonly ctxChildren: Int32Array
+  /** 1 when the properties at that depth hold an escape byte, so they must be unescaped first. */
+  private readonly ctxEscaped: Uint8Array
   private depth = -1
+  private i = 4
 
-  // parse state
-  private strict = false
-  private currentArea: OtbmTileArea | null = null
-  private currentTile: OtbmTile | null = null
-  private currentTileKey = 0
-  private readonly itemStack: OtbmItem[] = []
+  private readonly fileView: DataView
+  private scratch = new Uint8Array(4096)
+  private scratchView = new DataView(this.scratch.buffer)
+  // Properties are read from `src` between `pos` and `end`.
+  private src: Uint8Array
+  private view: DataView
+  private pos = 0
+  private end = 0
+  private nodeOffset = 0
 
-  // progress tracking
-  private totalAreas = 0
-  private areasDone = 0
+  private readonly text: TextCodec
+  private readonly checksUtf8: boolean
+  private readonly hasInlineCount: ((sid: number) => boolean) | undefined
+  private readonly limits: OtbmLimits
+  private readonly log = new DiagnosticLog()
+  private readonly onProgress: ((offset: number, total: number) => void) | undefined
+  private readonly inlineSids: number[] = []
+  private version = -1
+  private areaX = 0
+  private areaY = 0
+  private areaZ = 0
+  private itemDepth = 0
+  private itemsInTile = 0
 
   constructor(
     private readonly bytes: Uint8Array,
-    private readonly sliceReader: EscapedSliceReader,
-    private readonly otbLookup: OtbLookup | undefined,
-    private readonly onProgress: ((pct: number) => void) | undefined
-  ) {}
+    private readonly visitor: OtbmVisitor,
+    options: OtbmOptions = {},
+    readOptions: OtbmReadOptions = {}
+  ) {
+    if (bytes.length < 6 || bytes[4] !== START) {
+      throw new ParseError('Not an OTBM file: expected a node start at offset 4')
+    }
+    this.limits = resolveLimits(options.limits)
+    if (checkFileSize(bytes.length, this.limits)) {
+      this.log.add(
+        'file-above-reference',
+        0,
+        `OTBM of ${bytes.length} bytes is larger than any known map`
+      )
+    }
+    const maxDepth = STRUCTURE_DEPTH + this.limits.itemNesting + 1
+    this.ctxType = new Int32Array(maxDepth)
+    this.ctxKind = new Int32Array(maxDepth)
+    this.ctxPropsBegin = new Int32Array(maxDepth)
+    this.ctxChildren = new Int32Array(maxDepth)
+    this.ctxEscaped = new Uint8Array(maxDepth)
+    this.text = options.text ?? windows1252
+    this.checksUtf8 = this.text.name !== 'utf-8'
+    this.hasInlineCount = options.hasInlineCount
+    this.onProgress = readOptions.onProgress
+    this.fileView = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+    this.src = bytes
+    this.view = this.fileView
+  }
 
-  run(): void {
-    this.totalAreas = this.onProgress ? countTileAreas(this.bytes) : 0
-
+  /** Reads until the next tile area closes (true) or the map ends (false). */
+  step(): boolean {
     const bytes = this.bytes
-    let i = 4
-    while (i < bytes.length) {
+    const n = bytes.length
+    let i = this.i
+    while (i < n) {
       const b = bytes[i]!
-
       if (b === ESCAPE) {
+        this.ctxEscaped[this.depth] = 1
         i += 2
         continue
       }
-
       if (b === START) {
         this.finalizeProps(i)
-        i++
-        if (i >= bytes.length) throw new ParseError('Unexpected EOF after node start (0xFE)')
-        const type = bytes[i++]!
-        if (this.depth >= MAX_OTBM_DEPTH) {
-          throw new ParseError(`OTBM nesting limit exceeded (max ${MAX_OTBM_DEPTH}) at offset ${i}`)
+        const type = bytes[i + 1]!
+        const parent = this.depth < 0 ? Kind.None : this.ctxKind[this.depth]!
+        const kind = classify(parent, type)
+        const isList = kind === Kind.Towns || kind === Kind.Waypoints
+        const afterType = bytes[i + 2]
+        const hasProperties = afterType !== START && afterType !== END
+        const isListWithProperties = isList && hasProperties
+        if (kind === Kind.Unknown || isListWithProperties) {
+          i = this.keepUnknown(i, type, parent)
+          continue
         }
-        this.depth++
-        this.ctxType[this.depth] = type
-        this.ctxPropsBegin[this.depth] = i
+        if (parent === Kind.Root && kind !== Kind.MapData) {
+          this.log.add(
+            'node-out-of-place',
+            i,
+            `Node type ${type} outside the map data, read in place`
+          )
+        }
+        if (kind === Kind.Item) this.enterItem(parent, i)
+        const depth = ++this.depth
+        this.ctxType[depth] = type
+        this.ctxKind[depth] = kind
+        this.ctxPropsBegin[depth] = i + 2
+        this.ctxEscaped[depth] = 0
+        this.ctxChildren[depth] = 0
+        this.nodeOffset = i
+        i += 2
         continue
       }
-
       if (b === END) {
+        if (this.depth < 0) throw new ParseError(`Node end without a node start at offset ${i}`)
         this.finalizeProps(i)
         i++
-        this.onNodeClose()
-        this.depth--
+        const kind = this.ctxKind[this.depth--]!
+        if (kind === Kind.Item) this.itemDepth--
+        // After a node ends, only another node or the parent's end may follow: a property byte
+        // here would belong to no node.
+        const next = bytes[i]
+        const isStray = this.depth >= 0 && next !== START && next !== END
+        if (isStray) throw new ParseError(`Unexpected byte between nodes at offset ${i}`)
+        if (this.onNodeClose(kind, i)) {
+          this.i = i
+          if (kind === Kind.Area && this.onProgress !== undefined) this.onProgress(i, n)
+          return kind === Kind.Area
+        }
         continue
       }
-
       i++
     }
+    throw new ParseError('OTBM ends with open nodes')
   }
 
-  private finalizeProps(pos: number): void {
-    const depth = this.depth
-    if (depth >= 0 && this.ctxPropsBegin[depth] !== -1) {
-      this.processProps(this.ctxType[depth]!, this.ctxPropsBegin[depth]!, pos)
-      this.ctxPropsBegin[depth] = -1
+  /** Emits a node the reader does not model, verbatim; returns the offset after it. */
+  private keepUnknown(start: number, type: number, parent: number): number {
+    const end = nodeEnd(this.bytes, start)
+    const isTile = type === OTBM_NODE_TYPE.TILE || type === OTBM_NODE_TYPE.HOUSETILE
+    if (isTile && parent !== Kind.Area) {
+      this.log.add('tile-outside-area', start, 'Tile outside a tile area, kept as is')
+    } else if (KNOWN_TYPES.has(type)) {
+      this.log.add(
+        'node-out-of-place',
+        start,
+        `Node type ${type} in an unexpected place, kept as is`
+      )
+    } else {
+      this.log.add('unknown-node', start, `Unknown node type ${type}, kept as is`)
+    }
+    this.visitor.unknownNode?.(type, this.bytes.slice(start, end))
+    return end
+  }
+
+  /** Counts an item against the ceilings before it is opened. */
+  private enterItem(parent: number, offset: number): void {
+    const limits = this.limits
+    if (parent === Kind.Tile) {
+      if (++this.itemsInTile > limits.itemsPerTile) {
+        throw new ParseError(`Tile with more than ${limits.itemsPerTile} items at offset ${offset}`)
+      }
+    } else if (++this.ctxChildren[this.depth]! > limits.containerChildren) {
+      throw new ParseError(
+        `Container with more than ${limits.containerChildren} items at offset ${offset}`
+      )
+    }
+    if (++this.itemDepth > limits.itemNesting) {
+      throw new ParseError(`Items nested more than ${limits.itemNesting} deep at offset ${offset}`)
     }
   }
 
-  private processProps(type: number, begin: number, end: number): void {
-    if (this.depth === 0) {
-      if (end - begin < 16) {
-        throw new ParseError(
-          `Root node props too short for OTBM header (got ${end - begin}, need 16)`
-        )
+  private finalizeProps(end: number): void {
+    const depth = this.depth
+    if (depth < 0) return
+    const begin = this.ctxPropsBegin[depth]!
+    if (begin === -1) return
+    this.ctxPropsBegin[depth] = -1
+    if (end - begin > this.limits.nodePropertyBytes) {
+      throw new ParseError(
+        `Node at offset ${begin - 2} has more than ${this.limits.nodePropertyBytes} property bytes`
+      )
+    }
+    this.window(begin, end, this.ctxEscaped[depth] === 1)
+    switch (this.ctxKind[depth]) {
+      case Kind.Item: {
+        // Most items are a bare sid: keep that path small enough to stay inlined.
+        const sid = this.u16()
+        if (this.pos < this.end) return this.openItemWithAttributes(sid)
+        return this.visitor.item?.(sid, 'node', null)
       }
-      const sliceReader = this.sliceReader
-      sliceReader.seekWindow(begin, end)
-      const version = sliceReader.u32()
-      const width = sliceReader.u16()
-      const height = sliceReader.u16()
-      const majorVersion = sliceReader.u32()
-      const minorVersion = sliceReader.u32()
-      this.header = { version, width, height, majorVersion, minorVersion }
-      if (version === 0 && !this.otbLookup) {
-        throw new ParseError(
-          'OtbLookup is required for OTBM version 0 - provide an OtbLookup instance'
-        )
+      case Kind.Tile: {
+        const x = this.areaX + this.u8()
+        const y = this.areaY + this.u8()
+        const houseId = this.ctxType[depth] === OTBM_NODE_TYPE.HOUSETILE ? this.u32() : null
+        this.itemsInTile = 0
+        if (this.pos < this.end) return this.openTileWithAttributes(x, y, houseId)
+        return this.visitor.tile?.(x, y, this.areaZ, null, houseId, null)
       }
-      this.strict = version >= 1
+      case Kind.Area:
+        return this.openArea()
+      case Kind.Root:
+        return this.openRoot(begin)
+      case Kind.MapData:
+        return this.openMapData()
+      case Kind.Towns:
+        return this.visitor.list?.('towns')
+      case Kind.Waypoints:
+        return this.visitor.list?.('waypoints')
+      case Kind.Town:
+        return this.openTown()
+      case Kind.Waypoint:
+        return this.openWaypoint()
+    }
+  }
+
+  /** Emits the closing event; true when the caller must stop (an area closed or the map ended). */
+  private onNodeClose(kind: number, next: number): boolean {
+    const visitor = this.visitor
+    switch (kind) {
+      case Kind.Item:
+        visitor.itemEnd?.()
+        return false
+      case Kind.Tile:
+        visitor.tileEnd?.()
+        return false
+      case Kind.Area:
+        visitor.areaEnd?.()
+        return true
+      case Kind.MapData:
+        visitor.mapDataEnd?.()
+        return false
+      case Kind.Towns:
+      case Kind.Waypoints:
+        visitor.listEnd?.()
+        return false
+      case Kind.Root: {
+        const trailing = next < this.bytes.length ? this.bytes.slice(next) : null
+        if (trailing !== null) {
+          this.log.add(
+            'trailing-bytes',
+            next,
+            `${trailing.length} bytes after the root node, kept as is`
+          )
+        }
+        this.log.report(visitor)
+        visitor.end?.(trailing)
+        this.onProgress?.(this.bytes.length, this.bytes.length)
+        return true
+      }
+      default:
+        return false
+    }
+  }
+
+  private window(begin: number, end: number, escaped: boolean): void {
+    if (!escaped) {
+      this.src = this.bytes
+      this.view = this.fileView
+      this.pos = begin
+      this.end = end
       return
     }
+    if (end - begin > this.scratch.length) {
+      this.scratch = new Uint8Array(Math.max(end - begin, this.scratch.length * 2))
+      this.scratchView = new DataView(this.scratch.buffer)
+    }
+    const bytes = this.bytes
+    const scratch = this.scratch
+    let length = 0
+    for (let j = begin; j < end; j++) {
+      const b = bytes[j]!
+      scratch[length++] = b === ESCAPE ? bytes[++j]! : b
+    }
+    this.src = scratch
+    this.view = this.scratchView
+    this.pos = 0
+    this.end = length
+  }
 
-    const sliceReader = this.sliceReader
-    switch (type) {
-      case OTBM_NODE_TYPE.TILE_AREA: {
-        sliceReader.seekWindow(begin, end)
-        const baseX = sliceReader.u16()
-        const baseY = sliceReader.u16()
-        const baseZ = sliceReader.u8()
-        this.currentArea = { baseX, baseY, baseZ, tiles: [] }
-        break
-      }
+  private truncated(): never {
+    throw new ParseError(`Node at offset ${this.nodeOffset} ends before its properties do`)
+  }
 
-      case OTBM_NODE_TYPE.TILE:
-      case OTBM_NODE_TYPE.HOUSETILE: {
-        if (this.currentArea === null) return
-        sliceReader.seekWindow(begin, end)
-        const offsetX = sliceReader.u8()
-        const offsetY = sliceReader.u8()
-        const area = this.currentArea
-        const x = area.baseX + offsetX
-        const y = area.baseY + offsetY
-        const z = area.baseZ
-        this.currentTileKey = x + y * TILE_KEY_Y_STRIDE + z * TILE_KEY_Z_STRIDE
-        const items: OtbmItem[] = []
-        if (type === OTBM_NODE_TYPE.HOUSETILE) {
-          const houseId = sliceReader.u32()
-          this.currentTile = { kind: 'house', x, y, z, houseId, flags: 0, items } as OtbmHouseTile
-        } else {
-          this.currentTile = { kind: 'tile', x, y, z, flags: 0, items } as OtbmRegularTile
-        }
-        parseTileAttrs(sliceReader, this.currentTile, this.strict)
-        if (!this.strict && this.otbLookup) {
-          for (const item of this.currentTile.items) {
-            const resolved = this.otbLookup.getBySid(item.sid)
-            if (resolved !== undefined) item.cid = resolved.cid
-          }
-        }
-        break
-      }
+  u8(): number {
+    if (this.pos + 1 > this.end) this.truncated()
+    return this.src[this.pos++]!
+  }
 
-      case OTBM_NODE_TYPE.ITEM: {
-        sliceReader.seekWindow(begin, end)
-        const sid = sliceReader.u16()
-        const item: OtbmItem = { sid }
-        if (!this.strict && this.otbLookup) {
-          const resolved = this.otbLookup.getBySid(sid)
-          if (resolved !== undefined) item.cid = resolved.cid
-        }
-        parseItemAttrs(sliceReader, item, this.strict)
-        this.itemStack.push(item)
-        break
-      }
+  u16(): number {
+    if (this.pos + 2 > this.end) this.truncated()
+    const value = this.view.getUint16(this.pos, true)
+    this.pos += 2
+    return value
+  }
 
-      case OTBM_NODE_TYPE.TOWN: {
-        sliceReader.seekWindow(begin, end)
-        const id = sliceReader.u32()
-        const nameLen = sliceReader.u16()
-        const name = sliceReader.str(nameLen)
-        const x = sliceReader.u16()
-        const y = sliceReader.u16()
-        const z = sliceReader.u8()
-        this.towns.push({ id, name, x, y, z })
-        this.stats.towns++
-        break
-      }
+  u32(): number {
+    if (this.pos + 4 > this.end) this.truncated()
+    const value = this.view.getUint32(this.pos, true)
+    this.pos += 4
+    return value
+  }
 
-      case OTBM_NODE_TYPE.WAYPOINT: {
-        if (this.header === null || this.header.version < 2) break
-        sliceReader.seekWindow(begin, end)
-        const nameLen = sliceReader.u16()
-        const name = sliceReader.str(nameLen)
-        const x = sliceReader.u16()
-        const y = sliceReader.u16()
-        const z = sliceReader.u8()
-        this.waypoints.push({ name, x, y, z })
-        this.stats.waypoints++
-        break
+  str(): string {
+    const size = this.u16()
+    if (this.pos + size > this.end) this.truncated()
+    const raw = this.src.subarray(this.pos, this.pos + size)
+    this.pos += size
+    if (this.checksUtf8 && looksLikeUtf8(raw)) {
+      this.log.add('possible-utf8-text', this.nodeOffset, 'Strings that look like UTF-8 text')
+    }
+    return this.text.decode(raw)
+  }
+
+  private rest(): Uint8Array | null {
+    if (this.pos >= this.end) return null
+    const tail = this.src.slice(this.pos, this.end)
+    this.pos = this.end
+    return tail
+  }
+
+  private openRoot(begin: number): void {
+    if (this.end - this.pos < 16) {
+      throw new ParseError(
+        `OTBM header has ${this.end - this.pos} property bytes, expected at least 16`
+      )
+    }
+    const bytes = this.bytes
+    this.version = this.u32()
+    const width = this.u16()
+    const height = this.u16()
+    const otbMajor = this.u32()
+    const otbMinor = this.u32()
+    if (this.version === 0 && this.hasInlineCount === undefined) {
+      throw new ParseError(
+        'OTBM v1 stores counts without a tag: pass `hasInlineCount` (inlineCountOf from @paradoxlab/otb)'
+      )
+    }
+    this.visitor.header?.({
+      identifier: (bytes[0]! | (bytes[1]! << 8) | (bytes[2]! << 16) | (bytes[3]! << 24)) >>> 0,
+      version: this.version,
+      width,
+      height,
+      otbMajor,
+      otbMinor,
+      rootType: bytes[begin - 1]!,
+      tail: this.rest()
+    })
+  }
+
+  private openMapData(): void {
+    const attributes: OtbmMapDataAttribute[] = []
+    while (this.pos < this.end) {
+      const at = this.pos
+      const id = this.u8()
+      if (id === OTBM_ATTRIBUTE.DESCRIPTION)
+        attributes.push({ kind: 'description', value: this.str() })
+      else if (id === OTBM_ATTRIBUTE.SPAWN_FILE)
+        attributes.push({ kind: 'spawnFile', value: this.str() })
+      else if (id === OTBM_ATTRIBUTE.HOUSE_FILE)
+        attributes.push({ kind: 'houseFile', value: this.str() })
+      else {
+        this.pos = at
+        attributes.push({ kind: 'unknown', bytes: this.rest()! })
       }
+    }
+    this.visitor.mapData?.({ attributes })
+  }
+
+  private openArea(): void {
+    this.areaX = this.u16()
+    this.areaY = this.u16()
+    this.areaZ = this.u8()
+    const tail = this.rest()
+    if (tail !== null) {
+      this.log.add(
+        'area-properties-extra',
+        this.nodeOffset,
+        'Tile areas with extra property bytes, kept as their tail'
+      )
+    }
+    this.visitor.area?.(this.areaX, this.areaY, this.areaZ, tail)
+  }
+
+  private openTileWithAttributes(x: number, y: number, houseId: number | null): void {
+    const visitor = this.visitor
+    let flags: number | null = null
+    let tail: Uint8Array | null = null
+    const inlineSids = this.inlineSids
+    inlineSids.length = 0
+    while (this.pos < this.end) {
+      const at = this.pos
+      const id = this.u8()
+      if (id === OTBM_ATTRIBUTE.TILE_FLAGS) {
+        flags = this.u32()
+      } else if (id === OTBM_ATTRIBUTE.ITEM) {
+        inlineSids.push(this.u16())
+      } else {
+        this.pos = at
+        tail = this.rest()
+      }
+    }
+    if (inlineSids.length > this.limits.itemsPerTile) {
+      throw new ParseError(
+        `Tile with more than ${this.limits.itemsPerTile} items at offset ${this.nodeOffset}`
+      )
+    }
+    this.itemsInTile = inlineSids.length
+    visitor.tile?.(x, y, this.areaZ, flags, houseId, tail)
+    for (let k = 0; k < inlineSids.length; k++) {
+      visitor.item?.(inlineSids[k]!, 'inline', null)
+      visitor.itemEnd?.()
     }
   }
 
-  private onNodeClose(): void {
-    const type = this.ctxType[this.depth]!
-    const stats = this.stats
-    switch (type) {
-      case OTBM_NODE_TYPE.TILE_AREA: {
-        this.areas.push(this.currentArea!)
-        stats.areas++
-        this.areasDone++
-        this.onProgress?.(Math.min(1, this.areasDone / this.totalAreas))
-        this.currentArea = null
-        break
-      }
-
-      case OTBM_NODE_TYPE.TILE:
-      case OTBM_NODE_TYPE.HOUSETILE: {
-        if (this.currentTile === null) break
-        const tile = this.currentTile
-        this.currentArea!.tiles.push(tile)
-        this.tileMap.set(this.currentTileKey, tile)
-        stats.tiles++
-        if (tile.kind === 'house') stats.houseTiles++
-        stats.items += tile.items.length
-        this.currentTile = null
-        break
-      }
-
-      case OTBM_NODE_TYPE.ITEM: {
-        const item = this.itemStack.pop()!
-        if (this.itemStack.length > 0) {
-          const parent = this.itemStack[this.itemStack.length - 1]!
-          if (parent.children === undefined) parent.children = []
-          parent.children.push(item)
-          stats.nestedItems++
-        } else {
-          this.currentTile!.items.push(item)
-        }
-        break
-      }
+  private openItemWithAttributes(sid: number): void {
+    let form: ItemForm = 'node'
+    const attributes: OtbmItemAttribute[] = []
+    const storesCountInline = this.version === 0 && this.hasInlineCount!(sid)
+    if (storesCountInline) {
+      form = 'node+inlineCount'
+      attributes.push({ kind: 'count', value: this.u8() })
     }
+    while (this.pos < this.end) {
+      const at = this.pos
+      const spec = ITEM_ATTRIBUTE_BY_ID[this.u8()]
+      if (spec === undefined) {
+        // Attributes carry no length: from the first unknown one on, nothing can be parsed.
+        this.pos = at
+        attributes.push({ kind: 'unknown', bytes: this.rest()! })
+        break
+      }
+      attributes.push(spec.read(this))
+    }
+    this.visitor.item?.(sid, form, attributes)
   }
+
+  private openTown(): void {
+    const id = this.u32()
+    const name = this.str()
+    this.visitor.town?.({ id, name, x: this.u16(), y: this.u16(), z: this.u8(), tail: this.rest() })
+  }
+
+  private openWaypoint(): void {
+    const name = this.str()
+    this.visitor.waypoint?.({ name, x: this.u16(), y: this.u16(), z: this.u8(), tail: this.rest() })
+  }
+}
+
+/** The reader as steps: each yield is the end of a tile area, where a consumer may do other work. */
+export function* readOtbmSteps(
+  bytes: Uint8Array,
+  visitor: OtbmVisitor,
+  options: OtbmOptions = {},
+  readOptions: OtbmReadOptions = {}
+): Generator<void, void, undefined> {
+  const parser = new OtbmStreamParser(bytes, visitor, options, readOptions)
+  while (parser.step()) yield
+}
+
+export function readOtbm(
+  bytes: Uint8Array,
+  visitor: OtbmVisitor,
+  options: OtbmOptions = {},
+  readOptions: OtbmReadOptions = {}
+): void {
+  const parser = new OtbmStreamParser(bytes, visitor, options, readOptions)
+  while (parser.step()) continue
 }

@@ -6,15 +6,60 @@ settings:
 
 catalogs:
   default:
+    '@arethetypeswrong/cli':
+      specifier: ^0.18.3
+      version: 0.18.3
+    '@changesets/cli':
+      specifier: ^2.31.0
+      version: 2.31.0
+    '@commitlint/cli':
+      specifier: ^21.0.2
+      version: 21.0.2
+    '@commitlint/config-conventional':
+      specifier: ^21.0.2
+      version: 21.0.2
+    '@sinclair/typebox':
+      specifier: ^0.34.49
+      version: 0.34.49
     '@types/node':
       specifier: ^25.9.2
       version: 25.9.2
     '@vitest/coverage-v8':
       specifier: ^4.1.8
       version: 4.1.8
+    commander:
+      specifier: ^15.0.0
+      version: 15.0.0
+    dependency-cruiser:
+      specifier: ^17.4.3
+      version: 17.4.3
+    fast-check:
+      specifier: ^4.10.2
+      version: 4.10.2
+    knip:
+      specifier: ^6.16.1
+      version: 6.16.1
+    lefthook:
+      specifier: ^2.1.9
+      version: 2.1.9
+    lint-staged:
+      specifier: ^17.0.7
+      version: 17.0.7
+    oxfmt:
+      specifier: ^0.54.0
+      version: 0.54.0
+    oxlint:
+      specifier: ^1.69.0
+      version: 1.69.0
+    sharp:
+      specifier: ^0.34.5
+      version: 0.34.5
     tsup:
       specifier: ^8.5.1
       version: 8.5.1
+    tsx:
+      specifier: ^4.22.4
+      version: 4.22.4
     typescript:
       specifier: ^6.0.3
       version: 6.0.3
@@ -56,6 +101,28 @@ importers:
       oxlint:
         specifier: 'catalog:'
         version: 1.69.0
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.8(@types/node@25.9.2)(@vitest/coverage-v8@4.1.8)(vite@8.0.16(@types/node@25.9.2)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))
+
+  examples:
+    dependencies:
+      '@paradoxlab/otbm':
+        specifier: workspace:*
+        version: link:../packages/otbm
+      '@paradoxlab/utils':
+        specifier: workspace:*
+        version: link:../packages/utils
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 25.9.2
+      tsx:
+        specifier: 'catalog:'
+        version: 4.22.4
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
@@ -120,7 +187,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: 'catalog:'
-        version: 4.1.8(@types/node@25.9.2)(@vitest/coverage-v8@4.1.8)(vite@8.0.16(@types/node@25.9.2)(esbuild@0.27.7)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))
+        version: 4.1.8(@types/node@25.9.2)(@vitest/coverage-v8@4.1.8)(vite@8.0.16(@types/node@25.9.2)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))
 
   packages/otbm:
     dependencies:
@@ -128,12 +195,21 @@ importers:
         specifier: workspace:*
         version: link:../utils
     devDependencies:
+      '@paradoxlab/fixtures':
+        specifier: workspace:*
+        version: link:../../fixtures
+      '@paradoxlab/otb':
+        specifier: workspace:*
+        version: link:../otb
       '@types/node':
         specifier: 'catalog:'
         version: 25.9.2
       '@vitest/coverage-v8':
         specifier: 'catalog:'
         version: 4.1.8(vitest@4.1.8)
+      fast-check:
+        specifier: 'catalog:'
+        version: 4.10.2
       tsup:
         specifier: 'catalog:'
         version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(tsx@4.22.4)(typescript@6.0.3)(yaml@2.9.0)
@@ -259,7 +335,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: 'catalog:'
-        version: 4.1.8(@types/node@25.9.2)(@vitest/coverage-v8@4.1.8)(vite@8.0.16(@types/node@25.9.2)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))
+        version: 4.1.8(@types/node@25.9.2)(@vitest/coverage-v8@4.1.8)(vite@8.0.16(@types/node@25.9.2)(esbuild@0.27.7)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))
 
 packages:
 
@@ -2152,6 +2228,7 @@ packages:
   git-raw-commits@5.0.1:
     resolution: {integrity: sha512-Y+csSm2GD/PCSh6Isd/WiMjNAydu0VBiG9J7EdQsNA5P9uXvLayqjmTsNlK5Gs9IhblFZqOU0yid5Il5JPoLiQ==}
     engines: {node: '>=18'}
+    deprecated: Deprecated and no longer maintained. Use @conventional-changelog/git-client instead.
     hasBin: true
 
   glob-parent@5.1.2:
@@ -4227,7 +4304,7 @@ snapshots:
       obug: 2.1.2
       std-env: 4.1.0
       tinyrainbow: 3.1.0
-      vitest: 4.1.8(@types/node@25.9.2)(@vitest/coverage-v8@4.1.8)(vite@8.0.16(@types/node@25.9.2)(esbuild@0.27.7)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))
+      vitest: 4.1.8(@types/node@25.9.2)(@vitest/coverage-v8@4.1.8)(vite@8.0.16(@types/node@25.9.2)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0))
 
   '@vitest/expect@4.1.8':
     dependencies:

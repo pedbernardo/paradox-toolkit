@@ -33,14 +33,17 @@
     "test:run": "vitest run",
     "test:cov": "vitest run --coverage",
     "test:local": "vitest run --config vitest.local.config.ts",
-    "bench": "node --max-old-space-size=8192 --import tsx/esm src/otbm.bench.ts"
+    "bench": "node --import tsx/esm bench/otbm.bench.ts"
   },
   "dependencies": {
     "@paradoxlab/utils": "workspace:*"
   },
   "devDependencies": {
+    "@paradoxlab/fixtures": "workspace:*",
+    "@paradoxlab/otb": "workspace:*",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
+    "fast-check": "catalog:",
     "tsup": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
