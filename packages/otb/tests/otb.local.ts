@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { Otb } from '../src/otb.js'
 import { ITEM_GROUP } from '../src/otb-config.js'
+import { inlineCountOf } from '../src/otb-flags.js'
 
 const dirname = fileURLToPath(new URL('.', import.meta.url))
 const fixture = (name: string) => join(dirname, '..', 'fixtures', name)
@@ -85,6 +86,25 @@ describe('items-960 concrete values', () => {
   it('all entries have sid matching their map key', () => {
     for (const [sid, item] of file.entries()) {
       expect(item.sid).toBe(sid)
+    }
+  })
+})
+
+describe('inlineCountOf - items-772 (OTB 1.3)', () => {
+  const file = loadOtb(772)
+  const hasInlineCount = inlineCountOf(file)
+
+  it('is true for the gold coin (sid 2148, stackable)', () => {
+    expect(file.get(2148)?.flags.stackable).toBe(true)
+    expect(hasInlineCount(2148)).toBe(true)
+  })
+
+  it('agrees with the rule for every item in the file', () => {
+    for (const item of file.items) {
+      const isSplash = item.group === ITEM_GROUP.SPLASH
+      const isFluidContainer = item.group === ITEM_GROUP.FLUID
+      const storesCount = item.flags.stackable || isSplash || isFluidContainer
+      expect(hasInlineCount(item.sid)).toBe(storesCount)
     }
   })
 })

@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { ITEM_FLAG, flagsToInt, getItemFlags } from './otb-flags.js'
+import { ITEM_GROUP } from './otb-config.js'
+import { ITEM_FLAG, flagsToInt, getItemFlags, inlineCountOf } from './otb-flags.js'
+import { Otb } from './otb.js'
+import type { OtbItem, OtbItemFlags } from './types.js'
 
 describe('getItemFlags', () => {
   it('returns all 27 flags as false when flagsInt is 0', () => {
@@ -54,5 +57,48 @@ describe('flagsToInt', () => {
   it('round-trips a realistic multi-flag value', () => {
     const n = ITEM_FLAG.UNPASSABLE | ITEM_FLAG.BLOCK_MISSILES | ITEM_FLAG.PICKUPABLE
     expect(flagsToInt(getItemFlags(n))).toBe(n)
+  })
+})
+
+describe('inlineCountOf', () => {
+  const item = (sid: number, group: number, flags: Partial<OtbItemFlags> = {}): OtbItem => ({
+    sid,
+    cid: sid,
+    group,
+    flags: { ...getItemFlags(0), ...flags },
+    attributes: {}
+  })
+  const otb = Otb().load(
+    Otb().write({
+      schemaVersion: '1.3.46',
+      items: [
+        item(100, ITEM_GROUP.GROUND),
+        item(2148, ITEM_GROUP.NONE, { stackable: true }),
+        item(2016, ITEM_GROUP.SPLASH),
+        item(2005, ITEM_GROUP.FLUID),
+        item(2000, ITEM_GROUP.CONTAINER),
+        item(2007, ITEM_GROUP.NONE, { pickupable: true })
+      ]
+    })
+  )
+  const hasInlineCount = inlineCountOf(otb)
+
+  it('is true for stackable, splash and fluid-container items', () => {
+    expect(hasInlineCount(2148)).toBe(true)
+    expect(hasInlineCount(2016)).toBe(true)
+    expect(hasInlineCount(2005)).toBe(true)
+  })
+
+  it('is false for every other item', () => {
+    expect(hasInlineCount(100)).toBe(false)
+    expect(hasInlineCount(2000)).toBe(false)
+    expect(hasInlineCount(2007)).toBe(false)
+  })
+
+  it('is false for sids outside the database', () => {
+    expect(hasInlineCount(0)).toBe(false)
+    expect(hasInlineCount(2149)).toBe(false)
+    expect(hasInlineCount(65_535)).toBe(false)
+    expect(hasInlineCount(-1)).toBe(false)
   })
 })

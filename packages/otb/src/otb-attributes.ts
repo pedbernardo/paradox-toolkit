@@ -1,8 +1,6 @@
 import type { EscapedBinaryReader } from '@paradoxlab/utils'
 import type { OtbItem } from './types.js'
 
-const textDecoderLatin1 = new TextDecoder('latin1')
-
 export const ITEM_ATTRIBUTE = {
   SERVERID: 16,
   CLIENT_ID: 17,
@@ -48,11 +46,11 @@ export const ATTRIBUTE_HANDLERS: Record<number, (props: HandlerProps) => void> =
   },
 
   [ITEM_ATTRIBUTE.NAME]: ({ item, reader, length }) => {
-    item.attributes.name = readEscStr(reader, length)
+    item.attributes.name = reader.escStr(length)
   },
 
   [ITEM_ATTRIBUTE.DESCRIPTION]: ({ item, reader, length }) => {
-    item.attributes.description = readEscStr(reader, length)
+    item.attributes.description = reader.escStr(length)
   },
 
   [ITEM_ATTRIBUTE.SPEED]: ({ item, reader }) => {
@@ -108,16 +106,4 @@ export const ATTRIBUTE_HANDLERS: Record<number, (props: HandlerProps) => void> =
   [ITEM_ATTRIBUTE.CLASSIFICATION]: ({ item, reader }) => {
     item.attributes.classification = reader.escU8()
   }
-}
-
-function readEscStr(reader: EscapedBinaryReader, length: number): string {
-  return textDecoderLatin1.decode(reader.escBytes(length))
-}
-
-export function encodeStr(s: string): Uint8Array {
-  const result = new Uint8Array(s.length)
-  for (let i = 0; i < s.length; i++) {
-    result[i] = s.charCodeAt(i) & 0xff
-  }
-  return result
 }

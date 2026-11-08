@@ -2,7 +2,7 @@ import { createOutputBuffer } from '@paradoxlab/utils'
 import type { OutputBuffer } from '@paradoxlab/utils'
 import { NODE_SPECIAL_BYTE, ROOT_NODE_ATTR, ITEM_GROUP, parseSchemaVersion } from './otb-config.js'
 import { flagsToInt } from './otb-flags.js'
-import { ITEM_ATTRIBUTE, encodeStr } from './otb-attributes.js'
+import { ITEM_ATTRIBUTE } from './otb-attributes.js'
 import type { OtbItem, OtbWriteInput } from './types.js'
 import { ParseError } from '@paradoxlab/utils'
 
@@ -51,7 +51,7 @@ function validateWriteInput(data: OtbWriteInput): void {
 }
 
 function writeAttrs(writer: OutputBuffer, item: OtbItem): void {
-  const a = item.attributes
+  const attributes = item.attributes
 
   writer.u8(ITEM_ATTRIBUTE.SERVERID)
   writer.escU16(2)
@@ -63,90 +63,86 @@ function writeAttrs(writer: OutputBuffer, item: OtbItem): void {
     writer.escU16(item.cid)
   }
 
-  if (a.name !== undefined) {
-    const encoded = encodeStr(a.name)
+  if (attributes.name !== undefined) {
     writer.u8(ITEM_ATTRIBUTE.NAME)
-    writer.escU16(encoded.length)
-    writer.escBytes(encoded)
+    writer.escStr(attributes.name)
   }
 
-  if (a.description !== undefined) {
-    const encoded = encodeStr(a.description)
+  if (attributes.description !== undefined) {
     writer.u8(ITEM_ATTRIBUTE.DESCRIPTION)
-    writer.escU16(encoded.length)
-    writer.escBytes(encoded)
+    writer.escStr(attributes.description)
   }
 
-  if (a.speed !== undefined) {
+  if (attributes.speed !== undefined) {
     writer.u8(ITEM_ATTRIBUTE.SPEED)
     writer.escU16(2)
-    writer.escU16(a.speed)
+    writer.escU16(attributes.speed)
   }
 
-  if (a.weight !== undefined) {
+  if (attributes.weight !== undefined) {
     writer.u8(ITEM_ATTRIBUTE.WEIGHT)
     writer.escU16(8)
-    writer.escU64(a.weight)
+    writer.escU64(attributes.weight)
   }
 
-  if (a.spriteHash !== undefined) {
+  if (attributes.spriteHash !== undefined) {
     writer.u8(ITEM_ATTRIBUTE.SPRITEHASH)
-    writer.escU16(a.spriteHash.length)
-    writer.escBytes(a.spriteHash)
+    writer.escU16(attributes.spriteHash.length)
+    writer.escBytes(attributes.spriteHash)
   }
 
-  if (a.minimapColor !== undefined) {
+  if (attributes.minimapColor !== undefined) {
     writer.u8(ITEM_ATTRIBUTE.MINIMAPCOLOR)
     writer.escU16(2)
-    writer.escU16(a.minimapColor)
+    writer.escU16(attributes.minimapColor)
   }
 
-  if (a.maxItems !== undefined) {
+  if (attributes.maxItems !== undefined) {
     writer.u8(ITEM_ATTRIBUTE.MAXITEMS)
     writer.escU16(2)
-    writer.escU16(a.maxItems)
+    writer.escU16(attributes.maxItems)
   }
 
-  if (a.rotateTo !== undefined) {
+  if (attributes.rotateTo !== undefined) {
     writer.u8(ITEM_ATTRIBUTE.ROTATETO)
     writer.escU16(2)
-    writer.escU16(a.rotateTo)
+    writer.escU16(attributes.rotateTo)
   }
 
-  if (a.maxWriteLength !== undefined) {
+  if (attributes.maxWriteLength !== undefined) {
     writer.u8(ITEM_ATTRIBUTE.MAX_WRITE_LENGTH)
     writer.escU16(2)
-    writer.escU16(a.maxWriteLength)
+    writer.escU16(attributes.maxWriteLength)
   }
 
-  if (a.maxReadLength !== undefined) {
+  if (attributes.maxReadLength !== undefined) {
     writer.u8(ITEM_ATTRIBUTE.MAX_READ_LENGTH)
     writer.escU16(2)
-    writer.escU16(a.maxReadLength)
+    writer.escU16(attributes.maxReadLength)
   }
 
-  if (a.lightLevel !== undefined || a.lightColor !== undefined) {
+  if (attributes.lightLevel !== undefined || attributes.lightColor !== undefined) {
     writer.u8(ITEM_ATTRIBUTE.LIGHT2)
     writer.escU16(4)
-    writer.escU16(a.lightLevel ?? 0)
-    writer.escU16(a.lightColor ?? 0)
+    writer.escU16(attributes.lightLevel ?? 0)
+    writer.escU16(attributes.lightColor ?? 0)
   }
 
-  if (a.alwaysOnTopOrder !== undefined) {
+  if (attributes.alwaysOnTopOrder !== undefined) {
     writer.u8(ITEM_ATTRIBUTE.TOPORDER)
     writer.escU16(1)
-    writer.escU8(a.alwaysOnTopOrder)
+    writer.escU8(attributes.alwaysOnTopOrder)
   }
 
-  if (a.wareId !== undefined) {
+  if (attributes.wareId !== undefined) {
     writer.u8(ITEM_ATTRIBUTE.WAREID)
     writer.escU16(2)
-    writer.escU16(a.wareId)
+    writer.escU16(attributes.wareId)
   }
 
-  if (a.classification !== undefined) {
+  if (attributes.classification !== undefined) {
     writer.u8(ITEM_ATTRIBUTE.CLASSIFICATION)
     writer.escU16(1)
-    writer.escU8(a.classification)
+    writer.escU8(attributes.classification)
   }
 }
