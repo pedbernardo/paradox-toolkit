@@ -31,7 +31,7 @@ pnpm --filter @paradoxlab/otbm test:cov
 
 # Release (manual - no CI publish)
 pnpm changeset                        # document what changed
-pnpm version                          # bump versions + update CHANGELOGs
+pnpm bump                             # changeset version: bump versions + update CHANGELOGs
 pnpm build                            # rebuild after version bump
 pnpm release                          # publish to npm as @paradoxlab/*
 ```

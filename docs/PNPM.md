@@ -234,7 +234,7 @@ Packages in this monorepo are published to npm as `@paradoxlab/*`. The process u
 ### Full flow
 
 ```
-pnpm changeset   →   pnpm version   →   pnpm build   →   pnpm release
+pnpm changeset   →   pnpm bump   →   pnpm build   →   pnpm release
 ```
 
 ### Step by step
@@ -259,7 +259,7 @@ Before 1.0, a breaking change is released as a `minor` (`0.2.0 → 0.3.0`), as t
 **2. Bump versions**
 
 ```bash
-pnpm version
+pnpm bump
 ```
 
 Consumes the files in `.changeset/`, updates the `version` fields in affected `package.json` files, and generates/updates each package's `CHANGELOG.md`. The changeset files are removed automatically.
@@ -316,4 +316,4 @@ Check that the dependency is declared in the correct package's `package.json`. T
 
 ### "pnpm release" publishes nothing
 
-`changeset publish` only publishes packages whose version in `package.json` does not yet exist in the registry. If you skipped `pnpm version`, no new version was generated and the command does nothing.
+`changeset publish` only publishes packages whose version in `package.json` does not yet exist in the registry. If you skipped `pnpm bump`, no new version was generated and the command does nothing.
