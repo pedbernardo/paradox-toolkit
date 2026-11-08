@@ -60,7 +60,7 @@ Git hooks (Lefthook): pre-commit runs `lint-staged` (oxfmt + oxlint --fix on sta
 @paradoxlab/appearance → (none)
 ```
 
-`@paradoxlab/backpack` is the build tool (CLI + API) for item content and sprite atlases. `@paradoxlab/appearance` holds the pure visual rules of thing types (sprite index, patterns, elevation). The other five are pure parsers/writers.
+`@paradoxlab/backpack` builds Asset Packs, item content and sprite atlases (CLI + API) and loads packs in browsers (`/load`). `@paradoxlab/appearance` holds the pure visual rules of thing types (sprite index, patterns, elevation). The other five are pure parsers/writers.
 
 ### Package anatomy
 

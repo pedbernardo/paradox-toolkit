@@ -19,13 +19,30 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 - **Atlas encoder and packer as in plan I; lossless always**: see [done-04-plan-backpack-content-sprites.md](done-04-plan-backpack-content-sprites.md)
 - **S4 rules kept** (validated in the spike): stack order from DAT flags; empty sprite is frame 0; identical frames deduplicated by their layer sprite-id tuple; `opaque` only when every frame is opaque; grounds and borders packed first
 
+## As built
+
+The phases below keep their original deliverables; where the code differs, this section wins.
+
+- **File layout:** flat `src/backpack-*.ts` modules, as in plan 4: `backpack-compose.ts` (composition), `backpack-pack.ts` (`buildPack`), `backpack-load.ts` (`loadPack`, `urlReader`, `checkCompatibility`, `PACK_SCHEMA`), `fsReader` and `writePack` in `backpack-node.ts`; entry `src/load.ts`. Types in `src/types.ts`.
+- **Composition** walks each appearance's sprite indexes linearly (the layer axis sits between the pattern cell and the parts, as `spriteIndex` orders them; a unit test ties the two). `@paradoxlab/appearance` is a dev dependency only (tests and examples), so `backpack` depends on `dat`, `otb`, `spr` and `commander`.
+- **`opaque`** means every pixel at full alpha, not S4's "no fully transparent pixel": a half-transparent frame does not hide the tile below. Same result on the measured clients, which have no partial alpha in item frames.
+- **`render.json`** holds only the appearances some item uses, and `items.json` points at those rows; frames are columns (`RenderFrameColumns`, `FrameColumns` without `id`: the row is the frame number).
+- **Loader:** item columns become `Int32Array` (one type, room for -1), appearance columns `Int32Array`, frame columns `Uint16Array` (`page` `Int16Array`). `appearanceOfSid` is the derived sid → appearance table. `check(manifest)` runs before any other file is read, so a caller can refuse an incompatible pack early; `checkCompatibility` takes the OTB version from the OTBM header and warns for a pack without lineage.
+- **Views:** `ItemRow` in `backpack-views.ts` is shared by `viewContent` and the loader, over any array-like column.
+- **PNG without row filters:** measuring the pack pages against S4 showed that unfiltered rows beat the per-row filter choice of plan 4 on every page (7-24% smaller, 3.5-11x faster); the encoder now writes unfiltered rows, for sprite sheets too. Plan 4's sprite numbers were re-measured.
+- **Benchmark:** `bench/pack.bench.ts` + `bench/measure-pack.ts` (`bench:pack`), best of 3 processes per cell, instead of `tests/pack.bench.local.ts`; results in `results/perf.md`. The page-size target is revised to "equal to S4" (S4 already wrote unfiltered rows; with the same padding the pages match within 0.3%).
+- **Tests:** `src/backpack-compose.test.ts`, `src/backpack-pack.test.ts`, `src/backpack-load.test.ts` (includes the import check for `/load`), `tests/backpack-pack.local.ts` (five clients, the S4 coverage test and the three compatibility cases), with a synthetic client in `tests/support/synthetic-client.ts`.
+- **Examples:** `examples/src/pack-build.ts`, `pack-load.ts` (`drawStack`: a stack of 7 gold coins) and `sample-client.ts`; `attw` is not run here (warn-only in the repo).
+- **Padding:** 0 by default in packs (maintainer decision after the benchmark): renderers sample nearest-neighbor, and S4's layout saves about 3% and one page on the 1098. `padding: 1` stays available; sprite sheets keep 1 px.
+- **Commit strategy:** commit of the full plan after the maintainer's review, split into code, examples, changeset and docs.
+
 ---
 
 ## Phase 1 - Composed frames
 
 **Objective:** Every item appearance becomes Composed frames with layers flattened, trimmed, and deduplicated.
 
-**Status:** `not started`
+**Status:** `completed`
 
 ### Deliverables
 
@@ -49,7 +66,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** `buildPack` writes a complete Asset Pack in the ADR 0004 layout from DAT, SPR and OTB.
 
-**Status:** `not started`
+**Status:** `completed`
 
 ### Deliverables
 
@@ -73,7 +90,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** Editor and engine load a pack in a browser worker into typed arrays, with rich per-item views, and reject an incompatible pack before downloading its pages.
 
-**Status:** `not started`
+**Status:** `completed`
 
 ### Deliverables
 
@@ -105,7 +122,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** `backpack build` produces a pack directory from client files.
 
-**Status:** `not started`
+**Status:** `completed`
 
 ### Deliverables
 
@@ -121,7 +138,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** Pack generation and loading are measured on every client and compared with S4 and with the targets.
 
-**Status:** `not started`
+**Status:** `completed`
 
 ### Deliverables
 
@@ -145,7 +162,7 @@ This plan follows the conventions described in [docs/plans/README.md](README.md)
 
 **Objective:** The pack is documented by running examples, and the package is ready to publish.
 
-**Status:** `not started`
+**Status:** `completed`
 
 ### Deliverables
 
