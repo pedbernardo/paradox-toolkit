@@ -1,0 +1,41 @@
+{
+  "name": "@paradoxlab/appearance",
+  "version": "0.0.0",
+  "private": false,
+  "description": "Visual rules of OTServer thing types: sprite index, patterns, elevation and animation phase.",
+  "keywords": [
+    "OTServer",
+    "appearance",
+    "sprites",
+    "toolkit"
+  ],
+  "license": "MIT",
+  "author": "Pedro Bernardo <pedrovbernardo@gmail.com>",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:cov": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "catalog:",
+    "tsup": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
