@@ -433,6 +433,18 @@ describe('diagnostics and ceilings', () => {
       expect(codes(bytes)).toEqual(['area-properties-extra'])
     })
 
+    it('reports tile flags after inline items or repeated, keeping the last flags', () => {
+      const flagsAfterItem = mapBytes([area(node(TILE, [0, 0, 9, ...u16(100), 3, ...u32(1)]))])
+      const repeated = mapBytes([area(node(TILE, [0, 0, 3, ...u32(1), 3, ...u32(2)]))])
+      const canonical = mapBytes([area(node(TILE, [0, 0, 3, ...u32(1), 9, ...u16(100)]))])
+      expect(codes(flagsAfterItem)).toEqual(['tile-attributes-out-of-order'])
+      expect(codes(repeated)).toEqual(['tile-attributes-out-of-order'])
+      expect(codes(canonical)).toEqual([])
+      const r = recorder()
+      readOtbm(repeated, r.visitor)
+      expect(r.events.find(([name]) => name === 'tile')?.[4]).toBe(2)
+    })
+
     it('reports trailing bytes', () => {
       const trailing = otbmBytes(node(0, headerProps(), node(2, [], area(tile()))), [0xff])
       expect(diagnosticsOf(trailing)).toEqual([

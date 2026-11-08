@@ -77,6 +77,7 @@ export type OtbmDiagnosticCode =
   | 'file-above-reference'
   | 'node-out-of-place'
   | 'tile-outside-area'
+  | 'tile-attributes-out-of-order'
   | 'unknown-node'
   | 'area-properties-extra'
   | 'trailing-bytes'

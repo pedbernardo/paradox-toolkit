@@ -522,6 +522,14 @@ export class OtbmStreamParser implements AttributeReader {
       const at = this.pos
       const id = this.u8()
       if (id === OTBM_ATTRIBUTE.TILE_FLAGS) {
+        const isOutOfOrder = flags !== null || inlineSids.length > 0
+        if (isOutOfOrder) {
+          this.log.add(
+            'tile-attributes-out-of-order',
+            at,
+            'Tile flags after inline items or repeated, written back first; the last flags win'
+          )
+        }
         flags = this.u32()
       } else if (id === OTBM_ATTRIBUTE.ITEM) {
         inlineSids.push(this.u16())
