@@ -786,3 +786,14 @@ describe('createEscapedSliceReader', () => {
     expect(r.u8()).toBe(0xfd)
   })
 })
+
+describe('createEscapedSliceReader rest()', () => {
+  it('returns the unescaped bytes left in the window, then null', () => {
+    const r = createEscapedSliceReader(new Uint8Array([1, 2, 0xfd, 0xfe, 3, 9]))
+    r.seekWindow(0, 5)
+    r.u8()
+    expect(r.rest()).toEqual(new Uint8Array([2, 0xfe, 3]))
+    expect(r.isEOF).toBe(true)
+    expect(r.rest()).toBeNull()
+  })
+})

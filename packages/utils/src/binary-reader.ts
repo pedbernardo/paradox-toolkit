@@ -182,6 +182,8 @@ export type EscapedSliceReader = {
   u32(): number
   str(len: number): string
   skip(n: number): void
+  /** The unescaped bytes left in the window, or `null` when there are none. */
+  rest(): Uint8Array | null
   readonly isEOF: boolean
 }
 
@@ -249,6 +251,14 @@ export function createEscapedSliceReader(
       for (let j = 0; j < n; j++) {
         readEscapedByte()
       }
+    },
+
+    rest(): Uint8Array | null {
+      if (i >= windowEnd) return null
+      const out = new Uint8Array(windowEnd - i)
+      let length = 0
+      while (i < windowEnd) out[length++] = readEscapedByte()
+      return out.subarray(0, length)
     }
   }
 }
