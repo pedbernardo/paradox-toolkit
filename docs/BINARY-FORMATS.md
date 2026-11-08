@@ -61,18 +61,18 @@ Following the header, thing records are written sequentially with no separators.
 
 #### 1. Flags
 
-Flags are read as a sequence of u8 bytes until the sentinel is reached. The sentinel byte value is `0xFF` in all versions prior to 755 and `0x00` in v755 and later.
+Flags are read as a sequence of u8 ids until the end mark `0xFF`, in every version.
 
 Each non-sentinel byte maps to a named flag. The mapping is **version-dependent** — the same byte value means different things across versions. Some flags carry additional payload bytes:
 
 | Payload | Flags that use it |
 |---------|-------------------|
 | none | Most boolean flags (`STACKABLE`, `CONTAINER`, `PICKUPABLE`, etc.) |
-| u16 | `GROUND` (speed), `MINIMAP` (color), `LIGHT_INFO.level`, `WRITABLE` / `WRITABLE_ONCE` (max length), `LENS_HELP`, `CLOTH` (slot), `USABLE`, `ROTATETO` (v860+) |
-| u16 + u16 | `LIGHT_INFO` (level, color), `HAS_OFFSET` (offsetX, offsetY, v760+), `HAS_ELEVATION` (height, plus second u16) |
+| u16 | `GROUND` (speed), `WRITABLE` / `WRITABLE_ONCE` (max length), `HAS_ELEVATION` (height), `MINIMAP` (color), `LENS_HELP`, `CLOTH` (slot), `USABLE` |
+| u16 + u16 | `LIGHT_INFO` (level, color), `HAS_OFFSET` (offsetX, offsetY) |
 | complex | `MARKET` (v960+): u16 category + u16 tradeAs + u16 showAs + u16 nameLen + string + u16 restrictVocation + u16 requiredLevel |
 
-Flag positions shifted significantly across the major version breakpoints: v710, v740/750, v755, and v860. The `@paradoxlab/dat` package resolves the correct mapping via `getVersionFeatures`.
+Flag ids shifted across the version breakpoints (7.10, 7.40/7.50, 7.55, 8.60, 10.00+); `@paradoxlab/dat` keeps one id table per range and decodes every version to the same flag names.
 
 #### 2. Layout
 
@@ -89,7 +89,7 @@ The layout section immediately follows the flags sentinel:
 | patternZ | u8 | v755+ only; hardcoded to 1 in earlier versions |
 | frames | u8 | always |
 
-When the `frameDurations` feature is active (v1030+) and `frames > 1`, the layout is followed by animation timing data:
+When the `frameDurations` feature is active (10.30+) and `frames > 1`, the layout is followed by animation timing data:
 
 | Field | Size | Description |
 |-------|------|-------------|
@@ -98,7 +98,7 @@ When the `frameDurations` feature is active (v1030+) and `frames > 1`, the layou
 | startPhase | i8 | Signed starting frame |
 | durations | u32 × u32 × frames | Min and max duration in milliseconds per frame |
 
-When the `frameGroups` feature is active (v1090+), creatures carry multiple layout blocks — one per animation group (idle, moving, etc.) — each prefixed by a u8 group type.
+When the `frameGroups` feature is active (10.90+), creatures start with a u8 group count, then one layout block and sprite list per animation group (idle, moving), each prefixed by a u8 group type.
 
 #### 3. Sprite IDs
 
@@ -285,7 +285,7 @@ Each attribute uses a type-length-value layout:
 [data: length bytes]
 ```
 
-Unknown attribute IDs are skipped. The escape encoding applies to `length` and all data bytes.
+Unknown attribute IDs are skipped, so they are not written back. The escape encoding applies to `length` and all data bytes.
 
 **Attribute type IDs:**
 
@@ -293,8 +293,8 @@ Unknown attribute IDs are skipped. The escape encoding applies to `length` and a
 |----|------|--------------|
 | 16 | SERVERID | u16 |
 | 17 | CLIENT_ID | u16 |
-| 18 | NAME | string (latin-1) |
-| 19 | DESCRIPTION | string (latin-1) |
+| 18 | NAME | string (windows-1252) |
+| 19 | DESCRIPTION | string (windows-1252) |
 | 20 | SPEED | u16 |
 | 22 | MAXITEMS | u16 |
 | 23 | WEIGHT | u64 |
@@ -322,16 +322,18 @@ The `.otbm` file stores the complete game map as a binary tree of nodes. It uses
 ### File layout
 
 ```
-[u32: magic]            file format version (0–3)
-[0xFE 0x00]             root node start (WORLD_NODE type)
-  [escU32: worldVer]    expected value: 2
-  [escU16: mapWidth]    map width in tiles
-  [escU16: mapHeight]   map height in tiles
-  [escU32: tibiaMajor]  Tibia major version
-  [escU32: tibiaMinor]  Tibia minor version
-  [child nodes...]
+[u32: identifier]       4 bytes before the root node, 0 in every known map
+[0xFE 0x00]             root node start (type 0; some older editors wrote 1)
+  [escU32: version]     header version: 0 = OTBM v1 … 3 = OTBM v4
+  [escU16: width]       map width in tiles
+  [escU16: height]      map height in tiles
+  [escU32: otbMajor]    OTB version the item ids belong to (major)
+  [escU32: otbMinor]    and minor
+  [child nodes...]      MAP_DATA (towns and waypoints inside it)
 [0xFF]                  root node end
 ```
+
+The OTB major and minor say which item list (OTB lineage) the map's server ids refer to; a map editor checks them against its item data before opening the map.
 
 ### Node types
 
@@ -339,32 +341,42 @@ Every node starts with `0xFE`, followed by a u8 type byte, followed by property 
 
 | Type byte | Name | Contents |
 |-----------|------|----------|
-| `0x00` | WORLD_NODE | root; contains MAP_DATA, TOWNS, WAYPOINTS |
-| `0x02` | MAP_DATA | container; contains TILE_AREAs |
+| `0x00` | WORLD_NODE | root; contains MAP_DATA |
+| `0x02` | MAP_DATA | map attributes; contains TILE_AREAs, TOWNS, WAYPOINTS |
 | `0x04` | TILE_AREA | area header + TILE/HOUSETILE children |
 | `0x05` | TILE | tile position + attributes + ITEM children |
 | `0x06` | ITEM | item SID + attributes + nested ITEM children |
 | `0x0C` | TOWNS | container; contains TOWN children |
 | `0x0D` | TOWN | town ID, name, and temple position |
 | `0x0E` | HOUSETILE | like TILE but with a house ID |
-| `0x0F` | WAYPOINTS | container; contains WAYPOINT children (v2+) |
-| `0x10` | WAYPOINT | name and position (v2+) |
+| `0x0F` | WAYPOINTS | container; contains WAYPOINT children |
+| `0x10` | WAYPOINT | name and position |
 
 **Node hierarchy:**
 
 ```
 WORLD_NODE
-├─ MAP_DATA
-│  └─ TILE_AREA (one per 256×256 chunk)
-│     ├─ TILE
-│     │  └─ ITEM (recursive — items can contain items)
-│     └─ HOUSETILE
-│        └─ ITEM
-├─ TOWNS
-│  └─ TOWN
-└─ WAYPOINTS  (v2+)
-   └─ WAYPOINT
+└─ MAP_DATA
+   ├─ TILE_AREA (any number; tiles of one 256×256 block)
+   │  ├─ TILE
+   │  │  └─ ITEM (recursive — items can contain items)
+   │  └─ HOUSETILE
+   │     └─ ITEM
+   ├─ TOWNS
+   │  └─ TOWN
+   └─ WAYPOINTS
+      └─ WAYPOINT
 ```
+
+### MAP_DATA attributes
+
+| ID | Name | Value |
+|----|------|-------|
+| `0x01` | DESCRIPTION | escU16 length + string (repeatable) |
+| `0x0B` | SPAWN_FILE | escU16 length + string |
+| `0x0D` | HOUSE_FILE | escU16 length + string |
+
+Real maps are not always this tidy: areas can sit outside MAP_DATA, and nodes of unknown types appear at any depth. `@paradoxlab/otbm` keeps them where they are and reports them as diagnostics.
 
 ### TILE_AREA properties
 
@@ -398,8 +410,9 @@ Both node types then carry TLV attributes until the first child node or `0xFF`.
 | ID | Name | Value |
 |----|------|-------|
 | `0x03` | TILE_FLAGS | escU32 bitmask |
-| `0x04` | ACTION_ID | escU16 |
 | `0x09` | ITEM | escU16 SID (compact inline item) |
+
+Writers put the flags before the inline items; a reader that finds them later or twice keeps the last flags and reports it.
 
 **Tile flags bitmask:**
 
@@ -413,7 +426,9 @@ Both node types then carry TLV attributes until the first child node or `0xFF`.
 
 ### ITEM node
 
-Items carry a server ID and optional attributes. Items with no attributes and no children can be serialized as a compact inline tile attribute (`0x09`); all others are written as full nodes.
+Items carry a server ID and optional attributes. An item with no attributes and no children can be stored as a compact inline tile attribute (`0x09`) or as a node; both forms appear in real maps, and a lossless writer keeps each item in the form it had.
+
+**OTBM v1 inline count:** in header version 0, stackable, splash and fluid-container items store their count as an untagged byte right after the sid. Only the item list can tell which sids do, so reading a v1 map needs the OTB (`inlineCountOf` in `@paradoxlab/otb`).
 
 ```
 [0xFE 0x06]         node start
@@ -440,10 +455,12 @@ Items carry a server ID and optional attributes. Items with no attributes and no
 | `0x11` | DECAY_STATE | escU8 |
 | `0x12` | WRITTEN_DATE | escU32 |
 | `0x13` | WRITTEN_BY | escU16 length + string |
-| `0x14` | SLEEPER_GUID | escU32 (read and discarded) |
-| `0x15` | SLEEP_START | escU32 (read and discarded) |
+| `0x14` | SLEEPER_GUID | escU32 |
+| `0x15` | SLEEP_START | escU32 |
 | `0x16` | CHARGES | escU16 |
-| `0x80` | ATTRIBUTE_MAP | extended attributes (v4+) |
+| `0x80` | ATTRIBUTE_MAP | extended attributes of newer servers (OTBM v4) |
+
+Attributes carry no length, so the first unknown attribute ends parsing: `@paradoxlab/otbm` keeps it and everything after it as raw bytes (ATTRIBUTE_MAP included).
 
 ### TOWN node
 
@@ -455,7 +472,7 @@ Items carry a server ID and optional attributes. Items with no attributes and no
 [escU8: templeZ]
 ```
 
-### WAYPOINT node (v2+)
+### WAYPOINT node
 
 ```
 [escU16 + string: name]

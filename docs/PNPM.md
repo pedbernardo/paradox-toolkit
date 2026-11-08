@@ -22,9 +22,11 @@ The entire monorepo is a single pnpm workspace. The `pnpm-workspace.yaml` file a
 ```yaml
 packages:
   - 'packages/*'
+  - 'fixtures'
+  - 'examples'
 ```
 
-Each folder inside `packages/` is a **workspace package** with its own `package.json`.
+Each folder inside `packages/` is a published **workspace package** with its own `package.json`. `fixtures` (`@paradoxlab/fixtures`, the local test files and their resolver) and `examples` (`@paradoxlab/examples`, the runnable README examples) are private workspace packages.
 
 ### Catalog
 
@@ -169,27 +171,30 @@ Some packages have two additional scripts that are never run in CI.
 
 ### `test:local` — fixture-dependent integration tests
 
-Packages that have a `tests/` directory (`dat`, `spr`, `otb`, `otbm`) expose a `test:local` script that runs `tests/**/*.local.ts` files via a separate vitest config. These tests require Tibia binary fixtures that are not committed to the repository.
+Packages that have a `tests/` directory (`dat`, `spr`, `otb`, `otbm`, `backpack`) expose a `test:local` script that runs `tests/**/*.local.ts` files via a separate vitest config. These tests need the client files and maps under `fixtures/`, which are not committed to the repository (see `fixtures/README.md`).
 
 ```bash
 pnpm --filter @paradoxlab/dat test:local
 pnpm --filter @paradoxlab/spr test:local
 pnpm --filter @paradoxlab/otb test:local
 pnpm --filter @paradoxlab/otbm test:local
+pnpm --filter @paradoxlab/backpack test:local
 ```
 
 Tests that find no fixture file skip automatically (`it.skipIf` / `describe.skipIf`), so the command never fails outright — it just produces skipped tests for every missing file.
 
 ### `bench` — performance benchmarks
 
-`@paradoxlab/spr` and `@paradoxlab/otbm` expose a `bench` script that runs a standalone benchmark file with Node directly:
+`@paradoxlab/spr`, `@paradoxlab/otbm` and `@paradoxlab/backpack` expose benchmark scripts that run with Node directly, each measurement in its own process:
 
 ```bash
 pnpm --filter @paradoxlab/spr bench
-pnpm --filter @paradoxlab/otbm bench     # allocates up to 8 GB — large map files
+pnpm --filter @paradoxlab/otbm bench            # allocates up to 8 GB — large map files
+pnpm --filter @paradoxlab/backpack bench:sprites
+pnpm --filter @paradoxlab/backpack bench:pack
 ```
 
-Both commands also require fixture files to produce meaningful output. Without them the benchmark will either skip or error.
+They need the fixture files and skip the ones that are missing. Curated results live in each package's `results/perf.md`.
 
 ---
 
@@ -249,6 +254,8 @@ Semver guide:
 - `minor` — new backward-compatible functionality (`0.1.0 → 0.2.0`)
 - `major` — breaking API change (`0.1.0 → 1.0.0`)
 
+Before 1.0, a breaking change is released as a `minor` (`0.2.0 → 0.3.0`), as the packages here do; say what breaks in the changeset text.
+
 **2. Bump versions**
 
 ```bash
@@ -273,7 +280,7 @@ Ensures `dist/` is up to date with the code that will be published.
 pnpm release
 ```
 
-Runs `changeset publish`, which publishes to npm all packages whose `version` has not yet been published. The published name comes from each package's `publishConfig.name` (`@paradoxlab/*`).
+Runs `changeset publish`, which publishes to npm every package whose `version` is not in the registry yet, under its `name` (`@paradoxlab/*`; `publishConfig.access` is `public`). `workspace:*` dependencies are replaced with the exact versions being published.
 
 > Requires active npm authentication. Run `npm login` first if needed.
 
@@ -282,10 +289,10 @@ Runs `changeset publish`, which publishes to npm all packages whose `version` ha
 ```bash
 git add .
 git commit -m "chore: release"
-git push
+git push --follow-tags
 ```
 
-`changeset publish` creates git tags automatically (e.g. `@paradoxlab/dat@0.2.0`). No need to create tags manually.
+`changeset publish` creates a local git tag per published package (e.g. `@paradoxlab/dat@0.2.0`); `--follow-tags` pushes them with the commit.
 
 ---
 

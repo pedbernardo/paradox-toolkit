@@ -80,7 +80,7 @@ Produced by `buildSpriteSheet(spr, options)` or `backpack sprites`, next to PNG 
   "meta": {
     "schema": "2.0.0",
     "client": 860,
-    "spr": "4C2C7993",
+    "spr": "4C220594",
     "pages": [{ "width": 4091, "height": 4091 }],
     "sprites": 36386
   },

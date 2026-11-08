@@ -75,7 +75,7 @@ src/
   *.test.ts         # unit tests - run in CI via vitest
 tests/
   *.local.ts        # integration tests - require binary fixtures, never run in CI
-fixtures/           # binary test files (not committed - Tibia client files)
+fixtures/           # binary test files (not committed - client files)
 ```
 
 ### Factory pattern
