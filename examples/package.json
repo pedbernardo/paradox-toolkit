@@ -12,10 +12,17 @@
     "otbm-upgrade": "node --import tsx/esm src/run.ts otbm-upgrade",
     "otbm-edit": "node --import tsx/esm src/run.ts otbm-edit",
     "otbm-compose": "node --import tsx/esm src/run.ts otbm-compose",
-    "otbm-detect-codec": "node --import tsx/esm src/run.ts otbm-detect-codec"
+    "otbm-detect-codec": "node --import tsx/esm src/run.ts otbm-detect-codec",
+    "pack-build": "node --import tsx/esm src/run.ts pack-build",
+    "pack-load": "node --import tsx/esm src/run.ts pack-load"
   },
   "dependencies": {
+    "@paradoxlab/appearance": "workspace:*",
+    "@paradoxlab/backpack": "workspace:*",
+    "@paradoxlab/dat": "workspace:*",
+    "@paradoxlab/otb": "workspace:*",
     "@paradoxlab/otbm": "workspace:*",
+    "@paradoxlab/spr": "workspace:*",
     "@paradoxlab/utils": "workspace:*"
   },
   "devDependencies": {
